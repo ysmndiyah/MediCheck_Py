@@ -1,0 +1,81 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Login - MediCheck</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <style>
+    body {
+      background: linear-gradient(135deg, #F08787, #FFC7A7);
+      height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      font-family: 'Poppins', sans-serif;
+    }
+    .card {
+      border: none;
+      border-radius: 16px;
+      box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
+      padding: 2rem;
+      background: white;
+      width: 25rem;
+    }
+    h3 {
+      color: #F08787;
+      font-weight: 600;
+    }
+    .btn-custom {
+      background-color: #F08787;
+      color: white;
+      font-weight: 600;
+      transition: 0.3s;
+      border: none;
+    }
+    .btn-custom:hover {
+      background-color: #E76C6C;
+    }
+    a {
+      color: #F08787;
+      text-decoration: none;
+    }
+    a:hover {
+      text-decoration: underline;
+    }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <h3 class="text-center mb-3">Login MediCheck</h3>
+
+    {% if messages %}
+      {% for message in messages %}
+        <div class="alert alert-{{ message.tags }} small">{{ message }}</div>
+      {% endfor %}
+    {% endif %}
+
+    <form method="post">
+      {% csrf_token %}
+      <div class="mb-3">
+        <label class="form-label">Email</label>
+        <input type="email" name="email" class="form-control" required placeholder="email@contoh.com">
+      </div>
+
+      <div class="mb-3">
+        <label class="form-label">Password</label>
+        <input type="password" name="password" class="form-control" required placeholder="Masukkan password">
+      </div>
+
+      <button type="submit" class="btn btn-custom w-100">Login</button>
+    </form>
+
+    <p class="text-center mt-3 text-muted">
+      Belum punya akun? <a href="{% url 'accounts:register' %}" class="fw-semibold">Daftar di sini</a>
+    </p>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

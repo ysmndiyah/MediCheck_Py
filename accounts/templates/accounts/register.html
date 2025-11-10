@@ -1,0 +1,141 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Register - MediCheck</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <style>
+  body {
+    background: linear-gradient(135deg, #F08787, #FFC7A7);
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Poppins', sans-serif;
+  }
+
+  .card {
+    border: none;
+    border-radius: 16px;
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+    width: 420px;
+    background: #fff;
+  }
+
+  .card h4 {
+    color: #F08787;
+    font-weight: 600;
+  }
+
+  .form-label {
+    color: #444;
+    font-weight: 500;
+  }
+
+  .btn-custom {
+    background-color: #F08787;
+    color: #fff;
+    font-weight: 600;
+    border: none;
+    transition: 0.3s;
+  }
+
+  .btn-custom:hover {
+    background-color: #E76C6C;
+  }
+
+  a {
+    text-decoration: none;
+    color: #F08787;
+    font-weight: 500;
+  }
+
+  a:hover {
+    text-decoration: underline;
+  }
+
+  /* 🔥 Posisi ikon di dalam field (kanan tengah) */
+  .password-container {
+    position: relative;
+  }
+
+  .password-toggle {
+    position: absolute;
+    right: 10px;
+    top: 70%;
+    transform: translateY(-50%);
+    cursor: pointer;
+    color: #888;
+    user-select: none;
+  }
+
+  .password-toggle:hover {
+    color: #F08787;
+  }
+</style>
+
+</head>
+<body>
+  <div class="card p-4">
+    <h4 class="text-center mb-3">Daftar MediCheck</h4>
+
+    {% if messages %}
+      {% for message in messages %}
+        <div class="alert alert-{{ message.tags }} small">{{ message }}</div>
+      {% endfor %}
+    {% endif %}
+
+    <form method="post" novalidate>
+      {% csrf_token %}
+      <div class="mb-2">
+        <label class="form-label">Email</label>
+        <input type="email" name="email" class="form-control" required placeholder="email@contoh.com">
+      </div>
+
+      <div class="mb-2">
+        <label class="form-label">Nama Lengkap</label>
+        <input type="text" name="full_name" class="form-control" required placeholder="Nama Lengkap">
+      </div>
+
+      <div class="mb-2 password-container">
+  <label class="form-label">Password</label>
+  <input type="password" name="password" id="password"
+         class="form-control" required
+         placeholder="Password (min 6 karakter)">
+  <span class="password-toggle" onclick="togglePassword('password', this)">👁️</span>
+</div>
+
+<div class="mb-3 password-container">
+  <label class="form-label">Ulangi Password</label>
+  <input type="password" name="password2" id="password2"
+         class="form-control" required
+         placeholder="Ulangi password">
+  <span class="password-toggle" onclick="togglePassword('password2', this)">👁️</span>
+</div>
+
+      <button type="submit" class="btn btn-custom w-100 py-2">Buat Akun</button>
+    </form>
+
+    <p class="text-center mt-3 small text-muted">
+      Sudah punya akun? <a href="{% url 'accounts:login' %}">Login di sini</a>
+    </p>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+  <script>
+  function togglePassword(fieldId, iconElement) {
+    const field = document.getElementById(fieldId);
+    if (field.type === "password") {
+      field.type = "text";
+      iconElement.textContent = "🙈";
+    } else {
+      field.type = "password";
+      iconElement.textContent = "👁️";
+    }
+  }
+</script>
+
+</body>
+</html>
