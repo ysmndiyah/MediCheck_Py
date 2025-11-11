@@ -2,6 +2,7 @@ from django.shortcuts import render, redirect
 from django.contrib.auth.models import User
 from django.contrib import messages
 from django.contrib.auth import authenticate, login
+from django.contrib.auth.decorators import login_required
 
 
 # ===================== LOGIN DENGAN EMAIL =====================
@@ -82,4 +83,57 @@ def register_view(request):
 
 
 def bmi_view(request):
-    return render(request, 'accounts/bmi.html')
+    bmi = None
+    kategori = None
+    rekomendasi = []
+
+    if request.method == 'POST':
+        try:
+            berat = float(request.POST.get('berat'))
+            tinggi = float(request.POST.get('tinggi')) / 100  # ubah cm ke meter
+            bmi = berat / (tinggi ** 2)
+
+            if bmi < 18.5:
+                kategori = "Kurus"
+                rekomendasi = [
+                    "Makan lebih sering dengan porsi kecil.",
+                    "Tambahkan makanan tinggi protein (telur, ayam, ikan).",
+                    "Perbanyak asupan karbohidrat kompleks (nasi merah, kentang)."
+                ]
+            elif 18.5 <= bmi < 25:
+                kategori = "Normal (Ideal)"
+                rekomendasi = [
+                    "Pertahankan pola makan seimbang.",
+                    "Rutin olahraga minimal 3x seminggu.",
+                    "Tidur cukup dan jaga hidrasi tubuh."
+                ]
+            elif 25 <= bmi < 30:
+                kategori = "Overweight"
+                rekomendasi = [
+                    "Kurangi konsumsi gula dan gorengan.",
+                    "Perbanyak buah, sayur, dan air putih.",
+                    "Lakukan aktivitas fisik secara rutin."
+                ]
+            else:
+                kategori = "Obesitas"
+                rekomendasi = [
+                    "Konsultasi dengan ahli gizi atau dokter.",
+                    "Kurangi makanan tinggi lemak jenuh.",
+                    "Olahraga ringan setiap hari."
+                ]
+        except (ValueError, ZeroDivisionError):
+            messages.error(request, "Input tidak valid. Pastikan angka dimasukkan dengan benar.")
+
+    return render(request, 'accounts/bmi.html', {
+        'bmi': bmi,
+        'kategori': kategori,
+        'rekomendasi': rekomendasi
+    })
+
+from django.contrib.auth.decorators import login_required
+
+@login_required(login_url='accounts:login')
+def dashboard_view(request):
+    return render(request, 'accounts/dashboard.html')
+
+
