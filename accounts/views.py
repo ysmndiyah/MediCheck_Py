@@ -25,7 +25,7 @@ def login_view(request):
         if user is not None:
             login(request, user)
             messages.success(request, f"Selamat datang, {user.first_name or user.username}!")
-            return redirect('accounts:bmi')  # ganti nanti ke halaman beranda BMI
+            return redirect('accounts:dashboard')  # ganti nanti ke halaman beranda BMI
         else:
             messages.error(request, "Password salah.")
             return render(request, 'accounts/login.html')
@@ -129,6 +129,14 @@ def bmi_view(request):
         'kategori': kategori,
         'rekomendasi': rekomendasi
     })
+
+def monitor_view(request):
+    return render(request, 'accounts/monitor.html')
+
+def tips_view(request):
+    return render(request, 'accounts/tips.html')
+
+
 
 from django.contrib.auth.decorators import login_required
 

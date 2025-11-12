@@ -1,3 +1,4 @@
+{% load static %}
 <!DOCTYPE html>
 <html lang="id">
 <head>
@@ -389,30 +390,90 @@
           <span class="feature-icon">📊</span>
           <h3>Kalkulator BMI</h3>
           <p>Hitung Body Mass Index untuk mengetahui status berat badan ideal Anda</p>
+          <a href="{% url 'accounts:bmi' %}" class="btn-main">Mulai</a>
         </div>
 
         <div class="feature-box">
           <span class="feature-icon">💪</span>
           <h3>Monitor Kesehatan</h3>
           <p>Pantau perkembangan kesehatan Anda secara berkala dan teratur</p>
+          <a href="{% url 'accounts:monitor' %}" class="btn-main">Buka</a>
         </div>
 
         <div class="feature-box">
           <span class="feature-icon">🥗</span>
           <h3>Tips Nutrisi</h3>
           <p>Dapatkan rekomendasi pola makan sehat sesuai kondisi tubuh Anda</p>
+          <a href="{% url 'accounts:tips' %}" class="btn-main">Buka</a>
         </div>
       </div>
 
-      <!-- Call to Action -->
-      <div class="cta-section">
-        <div class="cta-title">🔥 Mulai Perjalanan Hidup Sehat Anda</div>
-        <p style="color: #6c757d; margin-bottom: 1.5rem;">Cek BMI Anda sekarang dan dapatkan rekomendasi kesehatan personal</p>
-        <a href="{% url 'accounts:bmi' %}" class="btn-main">
-          Hitung BMI Sekarang →
-        </a>
+      <!-- === New Health Features Section === -->
+<div class="main-card mt-5">
+
+  <!-- 🎯 Target Kesehatan -->
+  <section class="health-targets mb-5">
+    <h3 class="section-title text-center mb-4">🎯 Target Kesehatan Anda</h3>
+    <div class="row justify-content-center">
+      <div class="col-md-5 mb-3">
+        <div class="p-4 bg-light rounded shadow-sm">
+          <h5>Berat Ideal</h5>
+          <p>65 kg / Target 60 kg</p>
+          <div class="progress">
+            <div class="progress-bar bg-success" style="width: 80%;"></div>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-5 mb-3">
+        <div class="p-4 bg-light rounded shadow-sm">
+          <h5>Kalori Harian</h5>
+          <p>1200 dari 1800 kkal</p>
+          <div class="progress">
+            <div class="progress-bar bg-info" style="width: 65%;"></div>
+          </div>
+        </div>
       </div>
     </div>
+  </section>
+
+  <!-- 🥗 Rekomendasi Makanan Sehat Hari Ini -->
+  <section class="healthy-foods mb-5">
+    <h3 class="section-title text-center mb-4">🥗 Rekomendasi Makanan Sehat Hari Ini</h3>
+    <div class="row">
+      <div class="col-md-4 mb-4">
+        <div class="food-card p-3 bg-white rounded shadow-sm text-center">
+          <img src="{% static 'images/salad.jpg' %}" alt="Salad" class="img-fluid rounded mb-3" style="height:150px;object-fit:cover;">
+          <h5>Salad Sayur Segar</h5>
+          <p>Tinggi serat, rendah kalori, cocok untuk sarapan sehat.</p>
+        </div>
+      </div>
+      <div class="col-md-4 mb-4">
+        <div class="food-card p-3 bg-white rounded shadow-sm text-center">
+          <img src="{% static 'images/oatmeal.jpg' %}" alt="Oatmeal" class="img-fluid rounded mb-3" style="height:150px;object-fit:cover;">
+          <h5>Oatmeal Madu & Pisang</h5>
+          <p>Sumber energi kompleks untuk aktivitas harian.</p>
+        </div>
+      </div>
+      <div class="col-md-4 mb-4">
+        <div class="food-card p-3 bg-white rounded shadow-sm text-center">
+          <img src="{% static 'images/smoothie.jpg' %}" alt="Smoothie" class="img-fluid rounded mb-3" style="height:150px;object-fit:cover;">
+          <h5>Smoothie Alpukat</h5>
+          <p>Kaya lemak sehat dan membantu menurunkan kolesterol.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 💬 Tips Mingguan -->
+  <section class="weekly-tip text-center p-4 rounded" style="background: linear-gradient(135deg, #f0f9f4, #e0ffe7);">
+    <h3>💬 Tips Hidup Sehat Minggu Ini</h3>
+    <blockquote class="fst-italic mt-3 text-secondary">
+      “Kurangi minuman manis dan perbanyak air putih — kesehatan dimulai dari kebiasaan kecil setiap hari.”
+    </blockquote>
+  </section>
+
+</div>
+
 
     <!-- Statistics -->
     <div class="stats-row">
