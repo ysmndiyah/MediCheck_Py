@@ -6,30 +6,263 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Monitor Kesehatan - MediCheck</title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+
   <style>
     body {
-      background: linear-gradient(135deg, #5ee7df, #b490ca);
+      background: linear-gradient(135deg, #a8edea, #fed6e3);
       font-family: 'Poppins', sans-serif;
       display: flex;
       justify-content: center;
       align-items: center;
       height: 100vh;
+      color: #333;
+      overflow: hidden;
     }
+
     .card {
       background: white;
       border-radius: 20px;
-      padding: 2rem;
-      box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+      width: 90%;
       max-width: 500px;
+      padding: 2rem;
       text-align: center;
+      position: relative;
+      animation: fadeIn 0.6s ease;
+    }
+
+    h2 {
+      font-weight: 700;
+      margin-bottom: 15px;
+      color: #7b2ff7;
+    }
+
+    .question {
+      font-size: 1.1rem;
+      font-weight: 600;
+      margin-bottom: 20px;
+      color: #555;
+    }
+
+    .btn-option {
+      display: block;
+      width: 100%;
+      margin: 10px 0;
+      border-radius: 12px;
+      background-color: #b490ca;
+      color: white;
+      border: none;
+      padding: 10px;
+      font-size: 1rem;
+      transition: all 0.3s ease;
+    }
+
+    .btn-option:hover {
+      background-color: #9b6fc1;
+      transform: scale(1.03);
+    }
+
+    .btn-option.selected {
+      background-color: #7b2ff7;
+      transform: scale(1.05);
+    }
+
+    .response {
+      margin-top: 15px;
+      font-style: italic;
+      color: #555;
+      animation: fadeIn 0.4s ease;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .btn-next {
+      background-color: #5ee7df;
+      border: none;
+      color: white;
+      border-radius: 12px;
+      padding: 10px 25px;
+      margin-top: 20px;
+      font-weight: 600;
+      transition: 0.3s;
+    }
+
+    .btn-next:hover {
+      background-color: #4ccac0;
+    }
+
+    /* Animasi kartu hasil */
+    .result-cards {
+      display: flex;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 20px;
+      animation: fadeIn 0.8s ease;
+    }
+
+    .result-card {
+      flex: 1 1 calc(33% - 10px);
+      background-color: #f8f6ff;
+      border-radius: 15px;
+      padding: 15px;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+      transition: all 0.3s ease;
+      cursor: pointer;
+    }
+
+    .result-card:hover {
+      background-color: #e8e2ff;
+      transform: scale(1.05);
+    }
+
+    .emoji {
+      font-size: 1.8rem;
+    }
+
+    .dashboard-link {
+      display: inline-block;
+      margin-top: 25px;
+      text-decoration: none;
+      color: #555;
+      font-weight: 500;
+    }
+
+    .dashboard-link:hover {
+      color: #7b2ff7;
     }
   </style>
 </head>
 <body>
   <div class="card">
-    <h2>💪 Monitor Kesehatan</h2>
-    <p>Fitur ini akan membantu Anda memantau tekanan darah, detak jantung, dan kesehatan tubuh secara keseluruhan.</p>
-    <a href="{% url 'accounts:dashboard' %}" class="btn btn-primary mt-3">← Kembali ke Dashboard</a>
+    <h2>💜 Monitor Kesehatan</h2>
+    <div id="quiz">
+      <div id="question" class="question"></div>
+      <div id="options"></div>
+      <div id="response" class="response"></div>
+      <button id="nextBtn" class="btn-next" style="display:none;">Lanjut ➜</button>
+    </div>
+
+    <a href="{% url 'accounts:dashboard' %}" class="dashboard-link">← Kembali ke Dashboard</a>
   </div>
+
+  <script>
+    const quizData = [
+      {
+        question: "Bagaimana mood kamu hari ini?",
+        options: [
+          { text: "Senang & bersemangat 😄", response: "Wah keren! Pertahankan mood positif ini ya 💖" },
+          { text: "Biasa aja 😐", response: "Gapapa! Kadang hari tenang itu juga perlu 🌸" },
+          { text: "Kurang semangat 😞", response: "Yuk semangatin diri sendiri, kamu hebat kok 💪" }
+        ]
+      },
+      {
+        question: "Berapa jam kamu tidur semalam?",
+        options: [
+          { text: "6–8 jam 🌙", response: "Perfect! Tidur cukup bikin tubuh segar 🌼" },
+          { text: "Kurang dari 5 jam 😴", response: "Wah kurang tidur! Coba istirahat lebih ya 💜" },
+          { text: "Lebih dari 9 jam 😴", response: "Kamu istirahat banget nih, bagus tapi jangan kebanyakan ya 😅" }
+        ]
+      },
+      {
+        question: "Apakah kamu sudah olahraga hari ini?",
+        options: [
+          { text: "Sudah dong 💪", response: "Mantap! Tubuhmu pasti makin sehat ✨" },
+          { text: "Belum, tapi nanti mau 🏃", response: "Good! Niatnya udah langkah awal yang bagus 💜" },
+          { text: "Belum sempat 😅", response: "Coba gerak ringan aja dulu, bantu tubuh tetap aktif 💫" }
+        ]
+      },
+      {
+        question: "Makan dan minum kamu hari ini gimana?",
+        options: [
+          { text: "Seimbang 🍎", response: "Hebat! Pola makanmu sehat banget 💚" },
+          { text: "Banyak camilan 🍫", response: "Sesekali nggak apa-apa, tapi jangan kebanyakan ya 😋" },
+          { text: "Belum makan 😅", response: "Wah, jangan ditunda makan ya, tubuhmu butuh energi 🩷" }
+        ]
+      },
+      {
+        question: "Bagaimana tingkat stres kamu hari ini?",
+        options: [
+          { text: "Santai banget 😌", response: "Good! Tetap jaga pikiran tenang ya 🌿" },
+          { text: "Agak stres 😣", response: "Ambil napas dalam, istirahat sebentar yuk 🫶" },
+          { text: "Stres banget 😫", response: "Kamu nggak sendiri, istirahatlah dan cerita ke orang dekat 💜" }
+        ]
+      },
+      {
+        question: "Gimana tingkat fokus kamu hari ini?",
+        options: [
+          { text: "Fokus banget 🎯", response: "Keren! Produktivitasmu tinggi hari ini 💪" },
+          { text: "Biasa aja 😌", response: "Masih bagus, jangan lupa rehat sejenak juga ☕" },
+          { text: "Sulit fokus 😵‍💫", response: "Wajar banget, mungkin kamu butuh break dan hidrasi 💧" }
+        ]
+      }
+    ];
+
+    let currentQuestion = 0;
+    const questionEl = document.getElementById("question");
+    const optionsEl = document.getElementById("options");
+    const responseEl = document.getElementById("response");
+    const nextBtn = document.getElementById("nextBtn");
+    const quizEl = document.getElementById("quiz");
+
+    function loadQuestion() {
+      const q = quizData[currentQuestion];
+      questionEl.textContent = q.question;
+      optionsEl.innerHTML = "";
+      responseEl.textContent = "";
+      nextBtn.style.display = "none";
+
+      q.options.forEach(opt => {
+        const btn = document.createElement("button");
+        btn.textContent = opt.text;
+        btn.classList.add("btn-option");
+        btn.onclick = () => {
+          document.querySelectorAll(".btn-option").forEach(b => b.classList.remove("selected"));
+          btn.classList.add("selected");
+          responseEl.textContent = opt.response;
+          nextBtn.style.display = "inline-block";
+        };
+        optionsEl.appendChild(btn);
+      });
+    }
+
+    nextBtn.onclick = () => {
+      currentQuestion++;
+      if (currentQuestion < quizData.length) {
+        loadQuestion();
+      } else {
+        showResult();
+      }
+    };
+
+    function showResult() {
+      quizEl.innerHTML = `
+        <h3>🌸 Mood Kesehatan Kamu Hari Ini 🌸</h3>
+        <p>Kamu udah keren banget! Terus jaga keseimbangan tubuh & pikiran ya 💕</p>
+        <div class="result-cards">
+          <div class="result-card">
+            <div class="emoji">💓</div>
+            <h6>Detak Jantung</h6>
+            <p class="small">Normal & stabil — tubuhmu fit banget!</p>
+          </div>
+          <div class="result-card">
+            <div class="emoji">🌡️</div>
+            <h6>Suhu Tubuh</h6>
+            <p class="small">Dalam kondisi ideal, tetap jaga hidrasi 💧</p>
+          </div>
+          <div class="result-card">
+            <div class="emoji">🧠</div>
+            <h6>Kesehatan Mental</h6>
+            <p class="small">Kamu cukup tenang & fokus, good job 🩵</p>
+          </div>
+        </div>
+      `;
+    }
+
+    loadQuestion();
+  </script>
 </body>
 </html>
