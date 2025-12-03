@@ -503,5 +503,213 @@
   </div>
 
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+
+<!-- ================= CHATBOT BUBBLE ================= -->
+<style>
+    #chatbot-btn {
+        position: fixed;
+        bottom: 25px;
+        right: 25px;
+        background: white;
+        width: 60px;
+        height: 60px;
+        border-radius: 50%;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        box-shadow: 0px 4px 12px rgba(0,0,0,0.2);
+        cursor: pointer;
+        transition: 0.3s;
+        z-index: 9999;
+    }
+    #chatbot-btn:hover {
+        transform: scale(1.1);
+    }
+
+    #chatbot-box {
+        position: fixed;
+        bottom: 100px;
+        right: 25px;
+        width: 320px;
+        background: white;
+        border-radius: 15px;
+        box-shadow: 0px 4px 20px rgba(0,0,0,0.2);
+        display: none;
+        z-index: 9999;
+        animation: fadeIn 0.3s ease;
+    }
+
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(10px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+
+    .chat-header {
+        background: #6C63FF;
+        padding: 12px;
+        border-radius: 15px 15px 0 0;
+        color: white;
+        font-size: 16px;
+        font-weight: bold;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .chat-body {
+        height: 280px;
+        overflow-y: auto;
+        padding: 10px;
+    }
+
+    .message {
+        display: flex;
+        margin-bottom: 12px;
+        align-items: flex-start;
+    }
+    .message.bot img, .message.user img {
+        width: 35px;
+        height: 35px;
+        border-radius: 50%;
+        margin-right: 8px;
+    }
+
+    .bubble {
+        background: #f1f1f1;
+        padding: 10px;
+        border-radius: 10px;
+    }
+
+    .user .bubble {
+        background: #6C63FF;
+        color: white;
+    }
+
+    .chat-input {
+        display: flex;
+        border-top: 1px solid #ddd;
+    }
+
+    .chat-input input {
+        flex: 1;
+        padding: 10px;
+        border: none;
+        outline: none;
+    }
+
+    .chat-input button {
+        background: #6C63FF;
+        color: white;
+        padding: 0 18px;
+        border: none;
+        cursor: pointer;
+    }
+</style>
+
+<!-- BUTTON -->
+<div id="chatbot-btn">
+    <img src="{% static 'chatbot/icon.jpg' %}" width="35">
+</div>
+
+<!-- CHATBOX -->
+<div id="chatbot-box">
+    <div class="chat-header">
+        <img src="{% static 'chatbot/bot.jpg' %}" width="30">
+        MediBot
+    </div>
+
+    <div class="chat-body" id="chat-body"></div>
+
+    <div class="chat-input">
+        <input type="text" id="chat-input" placeholder="Tulis pesan...">
+        <button onclick="sendMessage()">Kirim</button>
+    </div>
+</div>
+
+<script>
+    const btn = document.getElementById("chatbot-btn");
+    const box = document.getElementById("chatbot-box");
+
+    btn.onclick = () => {
+        box.style.display = box.style.display === "block" ? "none" : "block";
+    };
+
+    function sendMessage() {
+        let input = document.getElementById("chat-input");
+        let msg = input.value.trim();
+        if (!msg) return;
+
+        addUserMessage(msg);
+        input.value = "";
+
+        // Balasan simple chatbot
+        setTimeout(() => {
+            addBotMessage(botReply(msg));
+        }, 500);
+    }
+
+    function addUserMessage(text) {
+        document.getElementById("chat-body").innerHTML += `
+            <div class="message user">
+                <img src="{% static 'chatbot/user.jpg' %}">
+                <div class="bubble">${text}</div>
+            </div>`;
+    }
+
+    function addBotMessage(text) {
+        document.getElementById("chat-body").innerHTML += `
+            <div class="message bot">
+                <img src="{% static 'chatbot/bot.jpg' %}">
+                <div class="bubble">${text}</div>
+            </div>`;
+    }
+
+    function botReply(msg) {
+    msg = msg.toLowerCase();
+
+    // ======== SAPAAN ========
+    if (msg.match(/(halo|hai|hei|hey|hi|pagi|siang|malam)/)) {
+        return "Halo Ipa! 👋 Ada yang bisa MediBot bantu hari ini?";
+    }
+
+    // ======== TANYA BMI ========
+    if (msg.includes("bmi") || msg.includes("berat badan") || msg.includes("tinggi badan")) {
+        return "Untuk cek BMI, kamu bisa buka menu *Kalkulator BMI*. Kalau mau aku hitung di sini juga boleh, tinggal kirim berat dan tinggi kamu 😊";
+    }
+
+    // ======== TIPS KESEHATAN ========
+    if (msg.includes("tips") || msg.includes("sehat") || msg.includes("makan apa")) {
+        return "Tips sehat hari ini 🍎:\n• Minum air putih 2 liter\n• Hindari gorengan\n• Jalan kaki 10 menit\n• Tidur cukup 7–8 jam\nButuh tips lain?";
+    }
+
+    // ======== MONITOR KESEHATAN ========
+    if (msg.includes("monitor") || msg.includes("perkembangan") || msg.includes("riwayat")) {
+        return "Kamu bisa lihat grafik perkembangan kesehatanmu di menu *Monitor Kesehatan*. Mau aku arahkan ke sana?";
+    }
+
+    // ======== PERTANYAAN UMUM ========
+    if (msg.includes("siapa kamu")) {
+        return "Aku MediBot 🤖, asisten kesehatan di websitemu!";
+    }
+    if (msg.includes("buat apa")) {
+        return "Aku bantu kamu cek BMI, kasih tips nutrisi, dan memantau perkembangan kesehatanmu 💙";
+    }
+    if (msg.includes("kamu bisa apa")) {
+        return "Aku bisa bantu cek BMI, kasih tips kesehatan, jawaban nutrisi, dan nemenin kamu biar makin sehat 😄";
+    }
+
+    // ======== EMOSI ========
+    if (msg.includes("capek") || msg.includes("stress") || msg.includes("sedih") || msg.includes("pusing")) {
+        return "Ipaaa 🤗💙 coba istirahat sebentar ya. Tarik napas… kamu hebat kok.";
+    }
+
+    // ======== JIKA TIDAK MENGERTI ========
+    return "Hmm aku belum mengerti 😅. Coba tanya tentang BMI, tips kesehatan, nutrisi, atau monitor kesehatan ya.";
+}
+
+</script>
+
+
+  
 </body>
 </html>

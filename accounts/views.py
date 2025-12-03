@@ -144,4 +144,26 @@ from django.contrib.auth.decorators import login_required
 def dashboard_view(request):
     return render(request, 'accounts/dashboard.html')
 
+from django.http import JsonResponse
+
+def chatbot_api(request):
+    user_msg = request.GET.get('msg', '').lower()
+
+    # RULE BOT
+    if "halo" in user_msg or "hi" in user_msg:
+        reply = "Halo! Ada yang bisa Medicheck bantu hari ini?"
+    elif "bmi" in user_msg:
+        reply = "Untuk hitung BMI, kamu bisa masuk ke menu BMI ya!"
+    elif "makan apa" in user_msg:
+        reply = "Coba konsumsi makanan bergizi: sayur, buah, protein, dan air putih."
+    elif "obat" in user_msg:
+        reply = "Gunakan obat sesuai anjuran dokter. Ada keluhan tertentu?"
+    elif "tips" in user_msg:
+        reply = "Tips kesehatan ada di menu Tips ya!"
+    else:
+        reply = "Aku belum mengerti pertanyaanmu, coba ulangi ya 😊"
+
+    return JsonResponse({"reply": reply})
+
+
 
