@@ -86,49 +86,86 @@ def bmi_view(request):
     bmi = None
     kategori = None
     rekomendasi = []
+    penyakit = None
 
     if request.method == 'POST':
         try:
             berat = float(request.POST.get('berat'))
-            tinggi = float(request.POST.get('tinggi')) / 100  # ubah cm ke meter
+            tinggi = float(request.POST.get('tinggi')) / 100
+            penyakit = request.POST.get('penyakit')  # ambil riwayat penyakit
+
             bmi = berat / (tinggi ** 2)
 
+            # ================= KATEGORI BMI =================
             if bmi < 18.5:
                 kategori = "Kurus"
-                rekomendasi = [
+                rekomendasi += [
                     "Makan lebih sering dengan porsi kecil.",
-                    "Tambahkan makanan tinggi protein (telur, ayam, ikan).",
-                    "Perbanyak asupan karbohidrat kompleks (nasi merah, kentang)."
+                    "Makanan tinggi protein seperti telur, ayam, ikan.",
+                    "Tambahkan kalori sehat seperti alpukat dan kacang-kacangan."
                 ]
+
             elif 18.5 <= bmi < 25:
                 kategori = "Normal (Ideal)"
-                rekomendasi = [
+                rekomendasi += [
                     "Pertahankan pola makan seimbang.",
                     "Rutin olahraga minimal 3x seminggu.",
-                    "Tidur cukup dan jaga hidrasi tubuh."
+                    "Perbanyak minum air putih."
                 ]
+
             elif 25 <= bmi < 30:
                 kategori = "Overweight"
-                rekomendasi = [
+                rekomendasi += [
                     "Kurangi konsumsi gula dan gorengan.",
-                    "Perbanyak buah, sayur, dan air putih.",
-                    "Lakukan aktivitas fisik secara rutin."
+                    "Makan lebih banyak sayur dan buah.",
+                    "Lakukan olahraga ringan secara rutin."
                 ]
+
             else:
                 kategori = "Obesitas"
-                rekomendasi = [
-                    "Konsultasi dengan ahli gizi atau dokter.",
-                    "Kurangi makanan tinggi lemak jenuh.",
-                    "Olahraga ringan setiap hari."
+                rekomendasi += [
+                    "Kurangi makanan tinggi kalori dan lemak.",
+                    "Tingkatkan aktivitas fisik harian.",
+                    "Pertimbangkan konsultasi dengan ahli gizi."
                 ]
+
+            # ================= REKOMENDASI BERDASARKAN PENYAKIT =================
+            if penyakit == "diabetes":
+                rekomendasi += [
+                    "Hindari makanan manis dan minuman gula.",
+                    "Pilih karbohidrat kompleks seperti beras merah.",
+                    "Perbanyak sayuran hijau."
+                ]
+
+            elif penyakit == "hipertensi":
+                rekomendasi += [
+                    "Kurangi konsumsi garam.",
+                    "Hindari makanan kemasan dan instan.",
+                    "Perbanyak buah dan sayur."
+                ]
+
+            elif penyakit == "kolesterol":
+                rekomendasi += [
+                    "Kurangi makanan tinggi lemak jenuh.",
+                    "Konsumsi oatmeal, ikan, dan kacang-kacangan.",
+                ]
+
+            elif penyakit == "asam_urat":
+                rekomendasi += [
+                    "Hindari jeroan, seafood tinggi purin, dan daging merah.",
+                    "Minum air putih banyak setiap hari.",
+                ]
+
         except (ValueError, ZeroDivisionError):
-            messages.error(request, "Input tidak valid. Pastikan angka dimasukkan dengan benar.")
+            messages.error(request, "Input tidak valid. Masukkan angka dengan benar.")
 
     return render(request, 'accounts/bmi.html', {
         'bmi': bmi,
         'kategori': kategori,
+        'penyakit': penyakit,
         'rekomendasi': rekomendasi
     })
+
 
 def monitor_view(request):
     return render(request, 'accounts/monitor.html')
