@@ -1,268 +1,188 @@
-{% load static %}
 <!DOCTYPE html>
 <html lang="id">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Monitor Kesehatan - MediCheck</title>
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Monitor Kesehatan Mental</title>
 
-  <style>
-    body {
-      background: linear-gradient(135deg, #a8edea, #fed6e3);
-      font-family: 'Poppins', sans-serif;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      height: 100vh;
-      color: #333;
-      overflow: hidden;
-    }
+<style>
+body {
+    font-family: 'Poppins', sans-serif;
+    background: linear-gradient(135deg, #d4f1f4, #e9d5ff);
+    padding: 40px 15px;
+}
 
-    .card {
-      background: white;
-      border-radius: 20px;
-      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
-      width: 90%;
-      max-width: 500px;
-      padding: 2rem;
-      text-align: center;
-      position: relative;
-      animation: fadeIn 0.6s ease;
-    }
+.card {
+    background: #fff;
+    max-width: 520px;
+    margin: auto;
+    padding: 30px;
+    border-radius: 24px;
+    box-shadow: 0 15px 35px rgba(0,0,0,0.12);
+    text-align: center;
+}
 
-    h2 {
-      font-weight: 700;
-      margin-bottom: 15px;
-      color: #7b2ff7;
-    }
+h1 {
+    color: #7b2cff;
+    margin-bottom: 5px;
+}
 
-    .question {
-      font-size: 1.1rem;
-      font-weight: 600;
-      margin-bottom: 20px;
-      color: #555;
-    }
+.subtitle {
+    color: #666;
+    font-size: 14px;
+    margin-bottom: 25px;
+}
 
-    .btn-option {
-      display: block;
-      width: 100%;
-      margin: 10px 0;
-      border-radius: 12px;
-      background-color: #b490ca;
-      color: white;
-      border: none;
-      padding: 10px;
-      font-size: 1rem;
-      transition: all 0.3s ease;
-    }
+.question {
+    font-size: 18px;
+    font-weight: 600;
+    margin-bottom: 15px;
+}
 
-    .btn-option:hover {
-      background-color: #9b6fc1;
-      transform: scale(1.03);
-    }
+.btn {
+    width: 100%;
+    padding: 14px;
+    margin: 8px 0;
+    border-radius: 14px;
+    border: none;
+    font-size: 16px;
+    cursor: pointer;
+    background: #c4a3ff;
+    color: #fff;
+}
 
-    .btn-option.selected {
-      background-color: #7b2ff7;
-      transform: scale(1.05);
-    }
+.btn:hover {
+    background: #a88cff;
+}
 
-    .response {
-      margin-top: 15px;
-      font-style: italic;
-      color: #555;
-      animation: fadeIn 0.4s ease;
-    }
+.result {
+    margin-top: 25px;
+    background: #f8f5ff;
+    padding: 20px;
+    border-radius: 18px;
+    display: none;
+}
 
-    @keyframes fadeIn {
-      from { opacity: 0; transform: translateY(10px); }
-      to { opacity: 1; transform: translateY(0); }
-    }
-
-    .btn-next {
-      background-color: #5ee7df;
-      border: none;
-      color: white;
-      border-radius: 12px;
-      padding: 10px 25px;
-      margin-top: 20px;
-      font-weight: 600;
-      transition: 0.3s;
-    }
-
-    .btn-next:hover {
-      background-color: #4ccac0;
-    }
-
-    /* Animasi kartu hasil */
-    .result-cards {
-      display: flex;
-      justify-content: space-between;
-      flex-wrap: wrap;
-      gap: 10px;
-      margin-top: 20px;
-      animation: fadeIn 0.8s ease;
-    }
-
-    .result-card {
-      flex: 1 1 calc(33% - 10px);
-      background-color: #f8f6ff;
-      border-radius: 15px;
-      padding: 15px;
-      box-shadow: 0 4px 10px rgba(0,0,0,0.1);
-      transition: all 0.3s ease;
-      cursor: pointer;
-    }
-
-    .result-card:hover {
-      background-color: #e8e2ff;
-      transform: scale(1.05);
-    }
-
-    .emoji {
-      font-size: 1.8rem;
-    }
-
-    .dashboard-link {
-      display: inline-block;
-      margin-top: 25px;
-      text-decoration: none;
-      color: #555;
-      font-weight: 500;
-    }
-
-    .dashboard-link:hover {
-      color: #7b2ff7;
-    }
-  </style>
+.back {
+    display: inline-block;
+    margin-top: 25px;
+    text-decoration: none;
+    color: #555;
+    font-size: 14px;
+}
+</style>
 </head>
+
 <body>
-  <div class="card">
-    <h2>💜 Monitor Kesehatan</h2>
-    <div id="quiz">
-      <div id="question" class="question"></div>
-      <div id="options"></div>
-      <div id="response" class="response"></div>
-      <button id="nextBtn" class="btn-next" style="display:none;">Lanjut ➜</button>
-    </div>
 
-    <a href="{% url 'accounts:dashboard' %}" class="dashboard-link">← Kembali ke Dashboard</a>
-  </div>
+<div class="card">
 
-  <script>
-    const quizData = [
-      {
-        question: "Bagaimana mood kamu hari ini?",
-        options: [
-          { text: "Senang & bersemangat 😄", response: "Wah keren! Pertahankan mood positif ini ya 💖" },
-          { text: "Biasa aja 😐", response: "Gapapa! Kadang hari tenang itu juga perlu 🌸" },
-          { text: "Kurang semangat 😞", response: "Yuk semangatin diri sendiri, kamu hebat kok 💪" }
-        ]
-      },
-      {
-        question: "Berapa jam kamu tidur semalam?",
-        options: [
-          { text: "6–8 jam 🌙", response: "Perfect! Tidur cukup bikin tubuh segar 🌼" },
-          { text: "Kurang dari 5 jam 😴", response: "Wah kurang tidur! Coba istirahat lebih ya 💜" },
-          { text: "Lebih dari 9 jam 😴", response: "Kamu istirahat banget nih, bagus tapi jangan kebanyakan ya 😅" }
-        ]
-      },
-      {
-        question: "Apakah kamu sudah olahraga hari ini?",
-        options: [
-          { text: "Sudah dong 💪", response: "Mantap! Tubuhmu pasti makin sehat ✨" },
-          { text: "Belum, tapi nanti mau 🏃", response: "Good! Niatnya udah langkah awal yang bagus 💜" },
-          { text: "Belum sempat 😅", response: "Coba gerak ringan aja dulu, bantu tubuh tetap aktif 💫" }
-        ]
-      },
-      {
-        question: "Makan dan minum kamu hari ini gimana?",
-        options: [
-          { text: "Seimbang 🍎", response: "Hebat! Pola makanmu sehat banget 💚" },
-          { text: "Banyak camilan 🍫", response: "Sesekali nggak apa-apa, tapi jangan kebanyakan ya 😋" },
-          { text: "Belum makan 😅", response: "Wah, jangan ditunda makan ya, tubuhmu butuh energi 🩷" }
-        ]
-      },
-      {
-        question: "Bagaimana tingkat stres kamu hari ini?",
-        options: [
-          { text: "Santai banget 😌", response: "Good! Tetap jaga pikiran tenang ya 🌿" },
-          { text: "Agak stres 😣", response: "Ambil napas dalam, istirahat sebentar yuk 🫶" },
-          { text: "Stres banget 😫", response: "Kamu nggak sendiri, istirahatlah dan cerita ke orang dekat 💜" }
-        ]
-      },
-      {
-        question: "Gimana tingkat fokus kamu hari ini?",
-        options: [
-          { text: "Fokus banget 🎯", response: "Keren! Produktivitasmu tinggi hari ini 💪" },
-          { text: "Biasa aja 😌", response: "Masih bagus, jangan lupa rehat sejenak juga ☕" },
-          { text: "Sulit fokus 😵‍💫", response: "Wajar banget, mungkin kamu butuh break dan hidrasi 💧" }
-        ]
-      }
-    ];
+<h1>💜 Monitor Kesehatan Mental</h1>
+<p class="subtitle">Self-check ringan untuk memahami kondisi mentalmu hari ini</p>
 
-    let currentQuestion = 0;
-    const questionEl = document.getElementById("question");
-    const optionsEl = document.getElementById("options");
-    const responseEl = document.getElementById("response");
-    const nextBtn = document.getElementById("nextBtn");
-    const quizEl = document.getElementById("quiz");
+<div id="questionBox"></div>
 
-    function loadQuestion() {
-      const q = quizData[currentQuestion];
-      questionEl.textContent = q.question;
-      optionsEl.innerHTML = "";
-      responseEl.textContent = "";
-      nextBtn.style.display = "none";
+<div id="result" class="result"></div>
 
-      q.options.forEach(opt => {
-        const btn = document.createElement("button");
-        btn.textContent = opt.text;
-        btn.classList.add("btn-option");
-        btn.onclick = () => {
-          document.querySelectorAll(".btn-option").forEach(b => b.classList.remove("selected"));
-          btn.classList.add("selected");
-          responseEl.textContent = opt.response;
-          nextBtn.style.display = "inline-block";
-        };
-        optionsEl.appendChild(btn);
-      });
+<a href="{% url 'accounts:dashboard' %}" class="back">← Kembali ke Dashboard</a>
+
+</div>
+
+<script>
+/* ================= DATA PERTANYAAN (DATA-DRIVEN) ================= */
+const mentalQuestions = [
+    {
+        question: "Bagaimana perasaanmu hari ini?",
+        options: [
+            { text: "😊 Senang & bersemangat", score: 2 },
+            { text: "😐 Biasa saja", score: 1 },
+            { text: "😞 Kurang bersemangat", score: 0 }
+        ]
+    },
+    {
+        question: "Bagaimana kualitas tidurmu semalam?",
+        options: [
+            { text: "😴 Nyenyak & cukup", score: 2 },
+            { text: "😪 Kurang nyenyak", score: 1 },
+            { text: "😵 Sulit tidur", score: 0 }
+        ]
+    },
+    {
+        question: "Bagaimana energi & motivasimu hari ini?",
+        options: [
+            { text: "💪 Aktif & produktif", score: 2 },
+            { text: "🚶 Cukup", score: 1 },
+            { text: "🛌 Sangat lelah / kurang motivasi", score: 0 }
+        ]
     }
+];
 
-    nextBtn.onclick = () => {
-      currentQuestion++;
-      if (currentQuestion < quizData.length) {
-        loadQuestion();
-      } else {
+/* ================= ENGINE OTOMATIS ================= */
+let currentIndex = 0;
+let totalScore = 0;
+
+function renderQuestion() {
+    const q = mentalQuestions[currentIndex];
+    const box = document.getElementById("questionBox");
+
+    box.innerHTML = `
+        <div class="question">${q.question}</div>
+        ${q.options.map(
+            o => `<button class="btn" onclick="answer(${o.score})">${o.text}</button>`
+        ).join("")}
+    `;
+}
+
+function answer(score) {
+    totalScore += score;
+    currentIndex++;
+
+    if (currentIndex < mentalQuestions.length) {
+        renderQuestion();
+    } else {
         showResult();
-      }
-    };
+    }
+}
 
-    function showResult() {
-      quizEl.innerHTML = `
-        <h3>🌸 Mood Kesehatan Kamu Hari Ini 🌸</h3>
-        <p>Kamu udah keren banget! Terus jaga keseimbangan tubuh & pikiran ya 💕</p>
-        <div class="result-cards">
-          <div class="result-card">
-            <div class="emoji">💓</div>
-            <h6>Detak Jantung</h6>
-            <p class="small">Normal & stabil — tubuhmu fit banget!</p>
-          </div>
-          <div class="result-card">
-            <div class="emoji">🌡️</div>
-            <h6>Suhu Tubuh</h6>
-            <p class="small">Dalam kondisi ideal, tetap jaga hidrasi 💧</p>
-          </div>
-          <div class="result-card">
-            <div class="emoji">🧠</div>
-            <h6>Kesehatan Mental</h6>
-            <p class="small">Kamu cukup tenang & fokus, good job 🩵</p>
-          </div>
-        </div>
-      `;
+/* ================= OUTPUT DINAMIS ================= */
+function showResult() {
+    const result = document.getElementById("result");
+    result.style.display = "block";
+
+    const maxScore = mentalQuestions.length * 2;
+    const ratio = totalScore / maxScore;
+
+    let title = "";
+    let message = "";
+    let advice = "";
+
+    if (ratio >= 0.75) {
+        title = "🌸 Kondisi mentalmu terlihat baik";
+        message = "Kamu tampak cukup stabil dan positif hari ini.";
+        advice = "Pertahankan rutinitas sehat dan jangan lupa istirahat.";
+    } else if (ratio >= 0.45) {
+        title = "🌿 Kondisi mentalmu cukup stabil";
+        message = "Ada sedikit kelelahan, tapi masih dalam batas wajar.";
+        advice = "Coba luangkan waktu untuk relaksasi atau aktivitas yang kamu suka.";
+    } else {
+        title = "💙 Kamu terlihat sedang lelah secara mental";
+        message = "Tidak apa-apa merasa seperti ini, kamu tidak sendirian.";
+        advice = "Istirahatlah, dan pertimbangkan berbagi cerita dengan orang terpercaya.";
     }
 
-    loadQuestion();
-  </script>
+    result.innerHTML = `
+        <h3>${title}</h3>
+        <p>${message}</p>
+        <p><b>Saran:</b> ${advice}</p>
+        <p><small>Catatan: fitur ini bukan alat diagnosis medis.</small></p>
+    `;
+
+    document.getElementById("questionBox").innerHTML = "";
+}
+
+/* ================= INIT ================= */
+renderQuestion();
+</script>
+
 </body>
 </html>

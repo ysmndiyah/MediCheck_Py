@@ -2,211 +2,217 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Panduan Nutrisi Sehat - MediCheck</title>
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
-  <style>
-    body {
-      background: linear-gradient(120deg, #d4fc79, #96e6a1);
-      font-family: 'Poppins', sans-serif;
-      padding: 40px 10px;
-    }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Personalized Weekly Meal Plan</title>
 
-    h1 {
-      font-weight: 700;
-      text-align: center;
-      color: #2f3542;
-      margin-bottom: 2rem;
-    }
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
 
-    .nutrisi-card {
-      background: white;
-      border-radius: 18px;
-      overflow: hidden;
-      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
-      transition: 0.3s;
-      cursor: pointer;
-    }
+<style>
+body {
+    background: linear-gradient(120deg, #d4fc79, #96e6a1);
+    font-family: 'Poppins', sans-serif;
+    padding: 40px 15px;
+}
 
-    .nutrisi-card:hover {
-      transform: translateY(-8px);
-    }
+.container-box {
+    max-width: 720px;
+    margin: auto;
+    background: white;
+    padding: 30px;
+    border-radius: 22px;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+}
 
-    .nutrisi-card img {
-      width: 100%;
-      height: 180px;
-      object-fit: cover;
-    }
+h1 {
+    text-align: center;
+    font-weight: 700;
+    margin-bottom: 25px;
+}
 
-    .card-body {
-      padding: 15px;
-      text-align: center;
-    }
+label {
+    font-weight: 600;
+    margin-top: 15px;
+}
 
-    .category-name {
-      font-weight: 600;
-      color: #2f3542;
-    }
+input {
+    width: 100%;
+    padding: 12px;
+    border-radius: 12px;
+    border: 2px solid #ddd;
+}
 
-    .btn-back {
-      background: #70a1ff;
-      color: white;
-      border: none;
-      border-radius: 12px;
-      padding: 10px 20px;
-      text-decoration: none;
-      display: inline-block;
-      transition: 0.3s;
-    }
+button {
+    margin-top: 25px;
+    width: 100%;
+    padding: 14px;
+    border-radius: 14px;
+    border: none;
+    font-weight: 600;
+    background: linear-gradient(90deg, #6f3cff, #b34cff);
+    color: white;
+}
 
-    .btn-back:hover {
-      background: #1e90ff;
-    }
-
-    .modal-content {
-      border-radius: 20px;
-      padding: 20px;
-    }
-
-    .modal img {
-      width: 100%;
-      border-radius: 12px;
-      margin-bottom: 10px;
-    }
-
-    ul {
-      text-align: left;
-      margin-top: 10px;
-    }
-  </style>
+.result {
+    margin-top: 30px;
+    background: #f8f5ff;
+    padding: 20px;
+    border-radius: 16px;
+}
+</style>
 </head>
+
 <body>
 
-  <h1>🥗 Panduan Nutrisi Sehatmu</h1>
+<div class="container-box">
 
-  <div class="container">
-    <div class="row g-4">
+<h1>🥗 Personalized Weekly Meal Plan</h1>
 
-      <!-- Vitamin -->
-      <div class="col-md-4">
-        <div class="nutrisi-card" data-bs-toggle="modal" data-bs-target="#vitaminModal">
-          <img src="{% static 'images/vitamin.jpg' %}" alt="Vitamin">
-          <div class="card-body">
-            <div class="category-name">Vitamin</div>
-            <p>Menjaga imun dan energi tubuh</p>
-          </div>
-        </div>
-      </div>
+<label>Penyakit / Kondisi Kesehatan</label>
+<input id="penyakitInput" placeholder="contoh: diabetes, hipertensi" required>
 
-      <!-- Protein -->
-      <div class="col-md-4">
-        <div class="nutrisi-card" data-bs-toggle="modal" data-bs-target="#proteinModal">
-          <img src="{% static 'images/protein.jpg' %}" alt="Protein">
-          <div class="card-body">
-            <div class="category-name">Protein</div>
-            <p>Pembentuk otot & jaringan tubuh</p>
-          </div>
-        </div>
-      </div>
+<label>Alergi Makanan</label>
+<input id="alergiInput" required
+       placeholder="contoh: seafood, susu, kacang">
+<small class="text-muted">
+Wajib diisi, boleh lebih dari satu (pisahkan dengan koma atau kata "dan")
+</small>
 
-      <!-- Karbohidrat -->
-      <div class="col-md-4">
-        <div class="nutrisi-card" data-bs-toggle="modal" data-bs-target="#karboModal">
-          <img src="{% static 'images/karbohidrat.jpg' %}" alt="Karbohidrat">
-          <div class="card-body">
-            <div class="category-name">Karbohidrat</div>
-            <p>Sumber energi utama tubuh</p>
-          </div>
-        </div>
-      </div>
 
-      <!-- Lemak -->
-      <div class="col-md-4">
-        <div class="nutrisi-card" data-bs-toggle="modal" data-bs-target="#lemakModal">
-          <img src="{% static 'images/lemak sehat.jpg' %}" alt="Lemak Sehat">
-          <div class="card-body">
-            <div class="category-name">Lemak Sehat</div>
-            <p>Menjaga fungsi sel & hormon</p>
-          </div>
-        </div>
-      </div>
+<button id="generateBtn">Buat Meal Plan Mingguan</button>
 
-      <!-- Air -->
-      <div class="col-md-4">
-        <div class="nutrisi-card" data-bs-toggle="modal" data-bs-target="#airModal">
-          <img src="{% static 'images/air.jpg' %}" alt="Air Putih">
-          <div class="card-body">
-            <div class="category-name">Air</div>
-            <p>Menjaga hidrasi dan detoks tubuh</p>
-          </div>
-        </div>
-      </div>
+<div id="result" class="result" style="display:none;"></div>
 
-      <!-- Serat -->
-      <div class="col-md-4">
-        <div class="nutrisi-card" data-bs-toggle="modal" data-bs-target="#seratModal">
-          <img src="{% static 'images/serat.jpg' %}" alt="Serat">
-          <div class="card-body">
-            <div class="category-name">Serat</div>
-            <p>Menjaga pencernaan tetap sehat</p>
-          </div>
-        </div>
-      </div>
+<a href="{% url 'accounts:dashboard' %}" class="btn btn-link mt-3">← Kembali ke Dashboard</a>
 
-    </div>
+</div>
 
-    <div class="text-center mt-5">
-      <a href="{% url 'accounts:dashboard' %}" class="btn-back">← Kembali ke Dashboard</a>
-    </div>
-  </div>
+<script>
+/* ================= KNOWLEDGE BASE ================= */
+const kondisiData = [
+  {
+    keywords: ["diabetes"],
+    avoid: ["gula", "minuman manis"],
+    focus: ["serat", "protein", "karbo kompleks"]
+  },
+  {
+    keywords: ["hipertensi", "darah tinggi"],
+    avoid: ["garam", "makanan instan"],
+    focus: ["sayur", "buah", "kalium"]
+  },
+  {
+    keywords: ["jantung"],
+    avoid: ["lemak jenuh", "gorengan"],
+    focus: ["ikan", "oatmeal", "lemak sehat"]
+  },
+  {
+    keywords: ["asma", "sesak"],
+    avoid: ["makanan olahan"],
+    focus: ["antioksidan", "vitamin c"]
+  }
+];
 
-  <!-- MODAL DETAIL -->
-  <div class="modal fade" id="vitaminModal" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered">
-      <div class="modal-content">
-        <img src="{% static 'images/vit1.jpeg' %}" alt="Vitamin Detail">
-        <h4>🥕 Vitamin</h4>
-        <p>Vitamin membantu menjaga imun, memperbaiki sel, dan menjaga keseimbangan metabolisme tubuh.</p>
-        <ul>
-          <li>Vitamin A → wortel, bayam, pepaya</li>
-          <li>Vitamin C → jeruk, stroberi, brokoli</li>
-          <li>Vitamin D → ikan, telur, susu</li>
-        </ul>
-      </div>
-    </div>
-  </div>
+/* ================= DATABASE MENU ================= */
+const mealDB = {
+  sarapan: [
+    "Oatmeal dengan buah",
+    "Telur rebus & roti gandum",
+    "Smoothie sayur",
+    "Yogurt rendah lemak",
+    "Bubur kacang hijau"
+  ],
+  siang: [
+    "Nasi merah + ikan kukus",
+    "Salad ayam panggang",
+    "Sup sayur bening",
+    "Tumis tahu tempe",
+    "Sop ayam rendah garam"
+  ],
+  malam: [
+    "Sup sayur",
+    "Ikan panggang",
+    "Tumis brokoli",
+    "Salad sayur",
+    "Telur rebus & sayur"
+  ]
+};
 
-  <div class="modal fade" id="proteinModal" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered">
-      <div class="modal-content">
-        <img src="{% static 'images/protein1.jpg' %}" alt="Protein">
-        <h4>🍗 Protein</h4>
-        <p>Protein membangun otot dan memperbaiki jaringan tubuh.</p>
-        <ul>
-          <li>Hewani → ikan, ayam, telur</li>
-          <li>Nabati → tahu, tempe, kacang-kacangan</li>
-        </ul>
-      </div>
-    </div>
-  </div>
+/* ================= GENERATE ================= */
+document.getElementById("generateBtn").addEventListener("click", () => {
+  const penyakit = document.getElementById("penyakitInput").value.toLowerCase();
+const alergiText = document.getElementById("alergiInput").value.toLowerCase();
 
-  <div class="modal fade" id="karboModal" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered">
-      <div class="modal-content">
-        <img src="{% static 'images/karbo1.jpg' %}" alt="Karbohidrat">
-        <h4>🍚 Karbohidrat</h4>
-        <p>Memberikan energi utama untuk aktivitas harianmu.</p>
-        <ul>
-          <li>Pilih karbo kompleks → nasi merah, oatmeal</li>
-          <li>Hindari karbo olahan → tepung putih, gula</li>
-        </ul>
-      </div>
-    </div>
-  </div>
+if (!penyakit || !alergiText) {
+  alert("Penyakit dan alergi makanan wajib diisi");
+  return;
+}
 
-  <!-- Tambahkan modal lainnya (lemak, air, serat) nanti ya biar ga kepanjangan -->
-  
-  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+const alergiList = alergiText
+  .split(/,|dan|;/)
+  .map(a => a.trim())
+  .filter(a => a);
+
+  let avoid = [];
+  let focus = [];
+
+  kondisiData.forEach(k => {
+    if (k.keywords.some(w => penyakit.includes(w))) {
+      avoid.push(...k.avoid);
+      focus.push(...k.focus);
+    }
+  });
+
+    if (focus.length === 0) {
+  focus = ["makanan seimbang", "protein cukup", "sayur dan buah"];
+  avoid = ["makanan ultra-proses", "gula berlebih"];
+}
+
+
+
+  let html = `<h5>🎯 Fokus Nutrisi</h5>
+  <ul>${focus.map(f => `<li>${f}</li>`).join("")}</ul>
+
+  <h5>🚫 Perlu Dihindari</h5>
+  <ul>${avoid.map(a => `<li>${a}</li>`).join("")}</ul>`;
+
+  html += `<p><b>Alergi terdeteksi:</b> ${alergiList.join(", ")}</p>`;
+
+  html += `<h5 class="mt-4">📅 Meal Plan 7 Hari</h5>`;
+
+  for (let i = 1; i <= 7; i++) {
+
+  const safeSarapan = mealDB.sarapan.filter(m =>
+    !alergiList.some(a => m.toLowerCase().includes(a))
+  );
+
+  const safeSiang = mealDB.siang.filter(m =>
+    !alergiList.some(a => m.toLowerCase().includes(a))
+  );
+
+  const safeMalam = mealDB.malam.filter(m =>
+    !alergiList.some(a => m.toLowerCase().includes(a))
+  );
+
+  // ✅ TARUH DI SINI
+  const pick = (arr) => arr.length
+    ? arr[i % arr.length]
+    : "Menu aman terbatas";
+
+  // ✅ BARU OUTPUT
+  html += `
+    <p><b>Hari ${i}</b><br>
+    Sarapan: ${pick(safeSarapan)}<br>
+    Siang: ${pick(safeSiang)}<br>
+    Malam: ${pick(safeMalam)}</p>
+  `;
+}
+
+
+  const result = document.getElementById("result");
+  result.style.display = "block";
+  result.innerHTML = html;
+});
+</script>
+
 </body>
 </html>

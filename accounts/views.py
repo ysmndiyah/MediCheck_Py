@@ -92,7 +92,7 @@ def bmi_view(request):
         try:
             berat = float(request.POST.get('berat'))
             tinggi = float(request.POST.get('tinggi')) / 100
-            penyakit = request.POST.get('penyakit')  # ambil riwayat penyakit
+            penyakit = request.POST.get('penyakit')
 
             bmi = berat / (tinggi ** 2)
 
@@ -129,7 +129,7 @@ def bmi_view(request):
                     "Pertimbangkan konsultasi dengan ahli gizi."
                 ]
 
-            # ================= REKOMENDASI BERDASARKAN PENYAKIT =================
+            # ================= PENYAKIT =================
             if penyakit == "diabetes":
                 rekomendasi += [
                     "Hindari makanan manis dan minuman gula.",
@@ -156,6 +156,12 @@ def bmi_view(request):
                     "Minum air putih banyak setiap hari.",
                 ]
 
+            # ✅ SIMPAN SESSION (DI DALAM TRY)
+            request.session['penyakit'] = penyakit
+            request.session['kategori_bmi'] = kategori
+            return redirect('accounts:tips')
+
+
         except (ValueError, ZeroDivisionError):
             messages.error(request, "Input tidak valid. Masukkan angka dengan benar.")
 
@@ -165,6 +171,7 @@ def bmi_view(request):
         'penyakit': penyakit,
         'rekomendasi': rekomendasi
     })
+
 
 
 def monitor_view(request):
