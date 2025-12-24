@@ -367,15 +367,25 @@
         font-size: 1.8rem;
       }
     }
+    
   </style>
 </head>
 <body>
   <div class="dashboard-wrapper">
     <!-- Header -->
-    <div class="header-section">
-      <h1>💊 MediCheck</h1>
-      <p>Platform Kesehatan Digital Anda</p>
-    </div>
+    <div class="header-section d-flex justify-content-between align-items-center">
+  <div>
+    <h1>💊 MediCheck</h1>
+    <p>Platform Kesehatan Digital Anda</p>
+  </div>
+
+  <a href="{% url 'accounts:logout' %}"
+     class="btn btn-light fw-semibold px-4 py-2"
+     style="border-radius: 30px;">
+    🚪 Logout
+  </a>
+</div>
+
 
     <!-- Main Content -->
     <div class="main-card">
@@ -385,13 +395,20 @@
       </div>
 
       <!-- Features Grid -->
-      <div class="features-grid">
-        <div class="feature-box">
-          <span class="feature-icon">📊</span>
-          <h3>Kalkulator BMI</h3>
-          <p>Hitung Body Mass Index untuk mengetahui status berat badan ideal Anda</p>
-          <a href="{% url 'accounts:bmi' %}" class="btn-main">Mulai</a>
-        </div>
+      <div class="feature-box">
+  <span class="feature-icon">📊</span>
+  <h3>Kalkulator BMI</h3>
+
+  {% if last_bmi %}
+    <p><b>BMI Terakhir:</b> {{ last_bmi.bmi }}</p>
+    <p><b>Kategori:</b> {{ last_bmi.kategori }}</p>
+    <a href="{% url 'accounts:bmi' %}" class="btn-main">Hitung Ulang</a>
+  {% else %}
+    <p>Kamu belum pernah menghitung BMI.</p>
+    <a href="{% url 'accounts:bmi' %}" class="btn-main">Mulai</a>
+  {% endif %}
+</div>
+
 
         <div class="feature-box">
           <span class="feature-icon">💪</span>
@@ -408,33 +425,58 @@
         </div>
       </div>
 
+    
       <!-- === New Health Features Section === -->
 <div class="main-card mt-5">
 
   <!-- 🎯 Target Kesehatan -->
   <section class="health-targets mb-5">
     <h3 class="section-title text-center mb-4">🎯 Target Kesehatan Anda</h3>
+
+    {% if target %}
     <div class="row justify-content-center">
+
+      <!-- Berat Ideal -->
       <div class="col-md-5 mb-3">
         <div class="p-4 bg-light rounded shadow-sm">
           <h5>Berat Ideal</h5>
-          <p>65 kg / Target 60 kg</p>
+          <p>
+            {{ target.berat_sekarang }} kg /
+            Target {{ target.berat_ideal }} kg
+          </p>
+
           <div class="progress">
-            <div class="progress-bar bg-success" style="width: 80%;"></div>
-          </div>
-        </div>
-      </div>
-      <div class="col-md-5 mb-3">
-        <div class="p-4 bg-light rounded shadow-sm">
-          <h5>Kalori Harian</h5>
-          <p>1200 dari 1800 kkal</p>
-          <div class="progress">
-            <div class="progress-bar bg-info" style="width: 65%;"></div>
-          </div>
-        </div>
+  <div id="progress-kalori" class="progress-bar bg-info"></div>
+</div>
+
+      <!-- Kalori Harian -->
+<div class="col-md-5 mb-3">
+  <div class="p-4 bg-light rounded shadow-sm">
+    <h5>Kalori Harian</h5>
+    <p>
+      {{ target.kalori_harian }} dari {{ target.kalori_target }} kkal
+    </p>
+
+    <div class="progress">
+      <div class="progress-bar bg-info progress-kalori"
+           data-progress="{{ target.progress_kalori }}">
       </div>
     </div>
+  </div>
+</div>
+    </div>
+    {% else %}
+      <p class="text-center text-muted">
+        Hitung BMI terlebih dahulu untuk melihat target kesehatan.
+      </p>
+      <script>
+  document.getElementById("progress-kalori").style.width =
+    "{{ target.progress_kalori }}%";
+</script>
+    {% endif %}
   </section>
+</div>
+
 
   <!-- 🥗 Rekomendasi Makanan Sehat Hari Ini -->
   <section class="healthy-foods mb-5">
@@ -707,9 +749,10 @@
     return "Hmm aku belum mengerti 😅. Coba tanya tentang BMI, tips kesehatan, nutrisi, atau monitor kesehatan ya.";
 }
 
+
 </script>
 
 
-  
+
 </body>
 </html>

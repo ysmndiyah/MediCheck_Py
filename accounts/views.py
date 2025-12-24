@@ -3,6 +3,10 @@ from django.contrib.auth.models import User
 from django.contrib import messages
 from django.contrib.auth import authenticate, login
 from django.contrib.auth.decorators import login_required
+from .models import BMIResult
+from django.contrib.auth import logout
+from django.http import JsonResponse
+
 
 
 # ===================== LOGIN DENGAN EMAIL =====================
@@ -24,8 +28,8 @@ def login_view(request):
 
         if user is not None:
             login(request, user)
-            messages.success(request, f"Selamat datang, {user.first_name or user.username}!")
-            return redirect('accounts:dashboard')  # ganti nanti ke halaman beranda BMI
+            return redirect('accounts:dashboard')
+
         else:
             messages.error(request, "Password salah.")
             return render(request, 'accounts/login.html')
@@ -81,17 +85,19 @@ def register_view(request):
 
     return render(request, 'accounts/register.html')
 
-
+@login_required(login_url='accounts:login')
 def bmi_view(request):
     bmi = None
     kategori = None
     rekomendasi = []
     penyakit = None
 
+
     if request.method == 'POST':
         try:
             berat = float(request.POST.get('berat'))
-            tinggi = float(request.POST.get('tinggi')) / 100
+            tinggi_cm = float(request.POST.get('tinggi'))
+            tinggi = tinggi_cm / 100
             penyakit = request.POST.get('penyakit')
 
             bmi = berat / (tinggi ** 2)
@@ -147,20 +153,36 @@ def bmi_view(request):
             elif penyakit == "kolesterol":
                 rekomendasi += [
                     "Kurangi makanan tinggi lemak jenuh.",
-                    "Konsumsi oatmeal, ikan, dan kacang-kacangan.",
+                    "Konsumsi oatmeal, ikan, dan kacang-kacangan."
                 ]
 
             elif penyakit == "asam_urat":
                 rekomendasi += [
                     "Hindari jeroan, seafood tinggi purin, dan daging merah.",
-                    "Minum air putih banyak setiap hari.",
+                    "Minum air putih banyak setiap hari."
                 ]
 
-            # ✅ SIMPAN SESSION (DI DALAM TRY)
+            # ================= SIMPAN KE DATABASE =================
+            BMIResult.objects.create(
+                user=request.user,
+                berat=berat,
+                tinggi=tinggi * 100,  # balik ke cm
+                bmi=round(bmi, 2),
+                kategori=kategori,
+                riwayat_input=penyakit or "",
+                penyakit_terdeteksi=penyakit or "",
+                rekomendasi=", ".join(rekomendasi)
+)
+            
+            print("BMI DISIMPAN:", request.user.username, round(bmi, 2))
+
+
+
+            # ================= SIMPAN KE SESSION =================
             request.session['penyakit'] = penyakit
             request.session['kategori_bmi'] = kategori
-            return redirect('accounts:tips')
 
+            return redirect('accounts:dashboard')
 
         except (ValueError, ZeroDivisionError):
             messages.error(request, "Input tidak valid. Masukkan angka dengan benar.")
@@ -172,6 +194,12 @@ def bmi_view(request):
         'rekomendasi': rekomendasi
     })
 
+@login_required(login_url='accounts:login')
+def logout_view(request):
+    logout(request)
+    messages.success(request, "Berhasil logout.")
+    return redirect('accounts:login')
+
 
 
 def monitor_view(request):
@@ -181,14 +209,39 @@ def tips_view(request):
     return render(request, 'accounts/tips.html')
 
 
-
-from django.contrib.auth.decorators import login_required
-
 @login_required(login_url='accounts:login')
 def dashboard_view(request):
-    return render(request, 'accounts/dashboard.html')
+    last_bmi = BMIResult.objects.filter(user=request.user).last()
 
-from django.http import JsonResponse
+    target = None
+
+    if last_bmi:
+        tinggi_m = last_bmi.tinggi / 100
+        berat_ideal = round(22 * (tinggi_m ** 2), 1)
+        progress_berat = min(round((berat_ideal / last_bmi.berat) * 100, 0), 100)
+
+        kalori_target = round(22 * last_bmi.berat * 30)
+        kalori_harian = round(kalori_target * 0.65)
+        progress_kalori = round((kalori_harian / kalori_target) * 100, 0)
+
+        target = {
+            "berat_sekarang": last_bmi.berat,
+            "berat_ideal": berat_ideal,
+            "progress_berat": progress_berat,
+            "kalori_harian": kalori_harian,
+            "kalori_target": kalori_target,
+            "progress_kalori": progress_kalori,
+        }
+
+    messages.success(
+        request,
+        f"Selamat datang, {request.user.first_name or request.user.username}!"
+    )
+
+    return render(request, 'accounts/dashboard.html', {
+        'last_bmi': last_bmi,
+        'target': target
+    })
 
 def chatbot_api(request):
     user_msg = request.GET.get('msg', '').lower()

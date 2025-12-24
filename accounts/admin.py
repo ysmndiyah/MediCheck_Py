@@ -1,3 +1,14 @@
 from django.contrib import admin
+from .models import BMIResult
 
-# Register your models here.
+@admin.register(BMIResult)
+class BMIResultAdmin(admin.ModelAdmin):
+    list_display = (
+        'user',
+        'bmi',
+        'kategori',
+        'penyakit_terdeteksi',
+        'created_at'
+    )
+    list_filter = ('kategori', 'penyakit_terdeteksi')
+    search_fields = ('user__username', 'penyakit_terdeteksi')

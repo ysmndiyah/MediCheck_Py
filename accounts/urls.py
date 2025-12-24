@@ -10,6 +10,6 @@ urlpatterns = [
     path('bmi/', views.bmi_view, name='bmi'),
     path('monitor/', views.monitor_view, name='monitor'),
     path('tips/', views.tips_view, name='tips'),
-
-
+    path('chatbot-api/', views.chatbot_api, name='chatbot_api'),
+    path('logout/', views.logout_view, name='logout'),
 ]

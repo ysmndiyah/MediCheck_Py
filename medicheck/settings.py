@@ -117,10 +117,8 @@ USE_TZ = True
 
 STATIC_URL = 'static/'
 
-from pathlib import Path
-
 STATICFILES_DIRS = [
-    BASE_DIR / "static",  
+    BASE_DIR / 'accounts' / 'static',  
 ]
 
 # Default primary key field type
