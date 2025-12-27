@@ -33,3 +33,32 @@ class HealthTarget(models.Model):
 
     def __str__(self):
         return f"Target {self.user.username}"
+
+class HealthLog(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    berat = models.FloatField()
+    tinggi = models.FloatField()
+    bmi = models.FloatField()
+    kalori = models.IntegerField()
+    tanggal = models.DateField(auto_now_add=True)
+
+    def minggu(self):
+        return self.tanggal.isocalendar()[1]
+    
+class WeeklyMealPlan(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+
+    kondisi_kesehatan = models.TextField()
+    alergi_makanan = models.TextField()
+
+    week = models.IntegerField()
+    year = models.IntegerField()
+
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        unique_together = ('user', 'week', 'year')
+
+    def __str__(self):
+        return f"{self.user.username} - Week {self.week} {self.year}"
+

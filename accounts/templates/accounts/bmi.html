@@ -7,11 +7,40 @@
 
 <style>
 * { box-sizing: border-box; }
-
 body {
     font-family: 'Poppins', sans-serif;
     background: linear-gradient(135deg, #6f3cff, #b34cff);
     padding: 40px 15px;
+}
+.bmi-container {
+    background: #fff;
+    max-width: 520px;
+    margin: auto;
+    padding: 30px;
+    border-radius: 24px;
+}
+label { font-weight: 600; margin-top: 15px; display: block; }
+input {
+    width: 100%; padding: 14px;
+    border-radius: 14px; border: 2px solid #e2e2e2;
+}
+.btn-bmi {
+    width: 100%; margin-top: 20px;
+    padding: 15px; border-radius: 16px;
+    border: none; font-weight: 600;
+}
+.btn-hit { background:#6f3cff; color:white; }
+.btn-save { background:#00b894; color:white; display:none; }
+.hasil-card {
+    margin-top: 25px; padding: 22px;
+    border-radius: 18px; background:#f8f5ff;
+    display:none;
+}
+
+.wajib {
+    color: #e74c3c;        /* merah */
+    font-weight: 600;
+    font-size: 12px;
 }
 
 .btn-back {
@@ -21,383 +50,103 @@ body {
     color: #fff;
     border-radius: 10px;
     text-decoration: none;
-    font-weight: 500;
-}
-
-
-.bmi-container {
-    background: #fff;
-    max-width: 520px;
-    margin: auto;
-    padding: 30px;
-    border-radius: 24px;
-    box-shadow: 0 15px 35px rgba(0,0,0,0.15);
-    
-}
-
-h1 {
-    text-align: center;
-    color: #4a2cff;
-    margin-bottom: 25px;
-}
-
-label {
     font-weight: 600;
-    margin-top: 15px;
-    display: block;
+    transition: 0.3s;
 }
 
-input {
-    width: 100%;
-    padding: 14px;
-    font-size: 15px;
-    border-radius: 14px;
-    border: 2px solid #e2e2e2;
-    margin-top: 6px;
+.btn-back:hover {
+    background: rgba(255,255,255,0.35);
 }
 
-input:invalid { border-color: #ff4d4d; }
-input:valid { border-color: #6f3cff; }
-
-.btn-bmi {
-    width: 100%;
-    margin-top: 25px;
-    padding: 15px;
-    font-size: 18px;
-    font-weight: 600;
-    border-radius: 16px;
-    border: none;
-    color: #fff;
-    background: linear-gradient(90deg, #aaa, #bbb);
-    cursor: not-allowed;
-}
-
-.btn-bmi.active {
-    background: linear-gradient(90deg, #6f3cff, #b34cff);
-    cursor: pointer;
-}
-
-.btn-reset {
-    width: 100%;
-    margin-top: 12px;
-    padding: 13px;
-    font-size: 16px;
-    font-weight: 600;
-    border-radius: 16px;
-    border: 2px solid #6f3cff;
-    background: transparent;
-    color: #6f3cff;
-    cursor: pointer;
-}
-
-.btn-reset:hover {
-    background: #f1ebff;
-}
-
-.hasil-card {
-    margin-top: 25px;
-    padding: 22px;
-    border-radius: 18px;
-    background: #f8f5ff;
-    display: none;
-}
-
-.judul-hasil { font-size: 20px; font-weight: 700; }
-.subjudul { margin-top: 14px; font-weight: 600; }
-ul { padding-left: 18px; }
-small { color: #666; }
-
-a { color: #4a2cff; text-decoration: none; }
-a:hover { text-decoration: underline; }
 </style>
 </head>
 
 <body>
-    <div style="max-width:520px;margin:auto;margin-bottom:15px;">
+
+    <!--  KEMBALI KE DASHBOARD  -->
+<div style="max-width:520px;margin:auto;margin-bottom:15px;">
     <a href="{% url 'accounts:dashboard' %}" class="btn-back">
         ← Kembali ke Dashboard
     </a>
 </div>
 
-<form method="POST" id="bmiForm" style="display:none;">
-    {% csrf_token %}
-    <input type="hidden" name="berat" id="formBerat">
-    <input type="hidden" name="tinggi" id="formTinggi">
-    <input type="hidden" name="penyakit" id="formPenyakit">
-</form>
+<form method="POST">
+{% csrf_token %}
 
 <div class="bmi-container">
-
 <h1>Kalkulator BMI</h1>
 
 <label>Berat Badan (kg)</label>
-<input type="number" id="berat" min="1" max="300" required placeholder="Contoh: 65">
+<input type="number" id="berat" name="berat" required placeholder="Contoh: 20">
+<small class="wajib">* Wajib diisi</small>
 
 <label>Tinggi Badan (cm)</label>
-<input type="number" id="tinggi" min="50" max="250" required placeholder="Contoh: 170">
+<input type="number" id="tinggi" name="tinggi" required placeholder="Contoh: 150">
+<small class="wajib">* Wajib diisi</small>
 
 <label>Riwayat Penyakit</label>
-<input type="text" id="riwayat" required
-       placeholder="Contoh: diabetes dan sesak nafas">
-<small>Wajib diisi, boleh lebih dari satu penyakit</small>
+<input type="text" id="riwayat" name="penyakit" required
+placeholder="Contoh: diabetes dan sesak nafas">
 
-<button id="btnBMI" class="btn-bmi" disabled>🔥 Hitung BMI Saya</button>
-<button id="btnReset" class="btn-reset">🔄 Reset</button>
-
+<button type="button" id="btnHitung" class="btn-bmi btn-hit">🔥 Hitung BMI</button>
 
 <div id="hasil" class="hasil-card"></div>
 
+<button type="submit" id="btnSimpan" class="btn-bmi btn-save">💾 Simpan & Lihat Target Kesehatan</button>
+
 </div>
+</form>
 
 <script>
-    const btnReset = document.getElementById("btnReset");
-
-btnReset.addEventListener("click", () => {
-    // reset input
-    beratInput.value = "";
-    tinggiInput.value = "";
-    riwayatInput.value = "";
-
-    // sembunyikan hasil
-    const hasil = document.getElementById("hasil");
-    hasil.style.display = "none";
-    hasil.innerHTML = "";
- document.getElementById("formBerat").value = berat;
-    document.getElementById("formTinggi").value = tinggi;
-    document.getElementById("formPenyakit").value = riwayatText;
-
-    document.getElementById("bmiForm").submit();
-
-    // reset tombol hitung
-    btn.disabled = true;
-    btn.classList.remove("active");
-});
-
-
-/* ================= KNOWLEDGE BASE ================= */
 const penyakitData = [
-    {
-        label: "Diabetes",
-        aliases: ["diabetes"],
-        domain: "metabolic",
-        rekom: ["Batasi gula", "Perbanyak serat", "Makan teratur"]
-    },
-    {
-        label: "Hipertensi",
-        aliases: ["hipertensi", "darah tinggi"],
-        domain: "cardiovascular",
-        rekom: ["Kurangi garam", "Olahraga rutin"]
-    },
-    {
-        label: "Gangguan Pernapasan",
-        aliases: ["sesak nafas", "asma"],
-        domain: "respiratory",
-        rekom: ["Hindari asap rokok", "Latihan pernapasan"]
-    },
-    {
-    label: "Penyakit Jantung",
-    aliases: ["jantung", "penyakit jantung", "jantung koroner"],
-    domain: "cardiovascular",
-    rekom: [
-        "Kurangi lemak jenuh dan kolesterol",
-        "Kelola stres dengan baik",
-        "Lakukan aktivitas fisik ringan secara rutin"
-    ]
-}
-
+ { label:"Diabetes", aliases:["diabetes"], domain:"metabolic",
+   rekom:["Batasi gula","Perbanyak serat"] },
+ { label:"Hipertensi", aliases:["hipertensi","darah tinggi"], domain:"cardiovascular",
+   rekom:["Kurangi garam","Olahraga rutin"] },
+ { label:"Gangguan Pernapasan", aliases:["sesak nafas","asma"], domain:"respiratory",
+   rekom:["Hindari asap rokok"] }
 ];
 
-/* ================= DOMAIN → LINK SUMBER + PENJELASAN ================= */
 const domainSources = {
-    metabolic: [
-        {
-            name: "World Health Organization (WHO)",
-            url: "https://www.who.int/news-room/fact-sheets/detail/diabetes",
-            desc: "Panduan resmi WHO mengenai diabetes dan gangguan metabolik."
-        },
-        {
-            name: "National Institutes of Health (NIH)",
-            url: "https://www.niddk.nih.gov/health-information/diabetes",
-            desc: "Informasi medis berbasis riset tentang diabetes dan metabolisme."
-        },
-        {
-            name: "Centers for Disease Control and Prevention (CDC)",
-            url: "https://www.cdc.gov/diabetes",
-            desc: "Data epidemiologi dan pencegahan diabetes."
-        }
-    ],
-
-    cardiovascular: [
-        {
-            name: "World Health Organization (WHO)",
-            url: "https://www.who.int/news-room/fact-sheets/detail/cardiovascular-diseases-(cvds)",
-            desc: "Fakta dan pedoman WHO tentang penyakit kardiovaskular."
-        },
-        {
-            name: "American Heart Association (AHA)",
-            url: "https://www.heart.org/en/health-topics/high-blood-pressure",
-            desc: "Panduan klinis dan edukasi penyakit jantung dan hipertensi."
-        },
-        {
-            name: "Kementerian Kesehatan RI",
-            url: "https://www.kemkes.go.id",
-            desc: "Informasi nasional terkait penyakit jantung dan hipertensi."
-        }
-    ],
-
-    respiratory: [
-        {
-            name: "World Health Organization (WHO)",
-            url: "https://www.who.int/health-topics/asthma",
-            desc: "Panduan global WHO mengenai asma dan gangguan pernapasan."
-        },
-        {
-            name: "Global Initiative for Asthma (GINA)",
-            url: "https://ginasthma.org",
-            desc: "Pedoman internasional diagnosis dan manajemen asma."
-        },
-        {
-            name: "National Heart, Lung, and Blood Institute (NHLBI)",
-            url: "https://www.nhlbi.nih.gov/health/asthma",
-            desc: "Sumber ilmiah mengenai kesehatan paru dan pernapasan."
-        }
-    ],
-
-    general: [
-        {
-            name: "World Health Organization (WHO)",
-            url: "https://www.who.int",
-            desc: "Lembaga kesehatan dunia dengan pedoman kesehatan umum."
-        },
-        {
-            name: "Kementerian Kesehatan RI",
-            url: "https://www.kemkes.go.id",
-            desc: "Sumber resmi kebijakan dan informasi kesehatan nasional."
-        },
-        {
-            name: "National Institutes of Health (NIH)",
-            url: "https://www.nih.gov",
-            desc: "Lembaga riset kesehatan dengan publikasi ilmiah terpercaya."
-        }
-    ]
+ metabolic:[{name:"WHO",url:"https://www.who.int"}],
+ cardiovascular:[{name:"AHA",url:"https://www.heart.org"}],
+ respiratory:[{name:"WHO Asthma",url:"https://www.who.int/health-topics/asthma"}]
 };
 
+document.getElementById("btnHitung").addEventListener("click", () => {
+ const berat = Number(document.getElementById("berat").value);
+ const tinggi = Number(document.getElementById("tinggi").value);
+ const riwayat = document.getElementById("riwayat").value.toLowerCase();
 
-/* ================= GENERATE SUMBER (MAX 3) ================= */
-function generateSourcesByDomain(domains) {
-    let result = [];
+ if(!berat || !tinggi || !riwayat){
+   alert("Semua field wajib diisi");
+   return;
+ }
 
-    domains.forEach(d => {
-        if (domainSources[d]) {
-            domainSources[d].forEach(s => result.push(s));
-        }
-    });
+ const bmi = (berat / ((tinggi/100)**2)).toFixed(1);
+ const kategori = bmi<18.5?"Kurus":bmi<25?"Normal":bmi<30?"Gemuk":"Obesitas";
 
-    if (result.length === 0) {
-        result = domainSources.general;
-    }
+ let rekom = new Set(), domain = new Set();
+ penyakitData.forEach(p=>{
+   if(p.aliases.some(a=>riwayat.includes(a))){
+     p.rekom.forEach(r=>rekom.add(r));
+     domain.add(p.domain);
+   }
+ });
 
-    return result.slice(0, 3);
-}
+ const hasil = document.getElementById("hasil");
+ hasil.style.display="block";
+ hasil.innerHTML=`
+   <h3>Hasil BMI</h3>
+   <p><b>${bmi}</b> (${kategori})</p>
+   <h4>Rekomendasi</h4>
+   <ul>${[...rekom].map(r=>`<li>${r}</li>`).join("")}</ul>
+   <h4>Sumber</h4>
+   <ul>${[...domain].flatMap(d=>domainSources[d]||[])
+     .map(s=>`<li><a href="${s.url}" target="_blank">${s.name}</a></li>`).join("")}</ul>
+ `;
 
-/* ================= VALIDASI ================= */
-const beratInput = document.getElementById("berat");
-const tinggiInput = document.getElementById("tinggi");
-const riwayatInput = document.getElementById("riwayat");
-const btn = document.getElementById("btnBMI");
-
-function checkValid() {
-    const valid =
-        beratInput.value !== "" &&
-        tinggiInput.value !== "" &&
-        riwayatInput.value.trim() !== "";
-
-    btn.disabled = !valid;
-    btn.classList.toggle("active", valid);
-}
-
-[beratInput, tinggiInput, riwayatInput].forEach(el =>
-    el.addEventListener("input", checkValid)
-);
-
-/* ================= HITUNG BMI ================= */
-btn.addEventListener("click", () => {
-    const berat = Number(beratInput.value);
-    const tinggi = Number(tinggiInput.value);
-    const riwayatText = riwayatInput.value.toLowerCase();
-
-    const bmi = (berat / ((tinggi / 100) ** 2)).toFixed(1);
-    const kategori =
-        bmi < 18.5 ? "Kurus" :
-        bmi < 25 ? "Normal" :
-        bmi < 30 ? "Gemuk" : "Obesitas";
-
-    let rekomSet = new Set();
-    let penjelasanHTML = "";
-    let detectedAliases = new Set();
-    let domainSet = new Set();
-
-    penyakitData.forEach(p => {
-        if (p.aliases.some(a => riwayatText.includes(a))) {
-            penjelasanHTML += `<p><b>${p.label}</b>: kondisi terkait  ${p.domain}.</p>`;
-            p.rekom.forEach(r => rekomSet.add(r));
-            p.aliases.forEach(a => detectedAliases.add(a));
-            domainSet.add(p.domain);
-        }
-    });
-
-    /* ===== deteksi penyakit tidak dikenal ===== */
-    let unknown = [];
-    riwayatText.split(/dan|,|;/).forEach(w => {
-        let word = w.trim();
-        if (word && ![...detectedAliases].some(a => word.includes(a))) {
-            unknown.push(word);
-        }
-    });
-
-    /* ===== fallback ===== */
-    if (!penjelasanHTML) {
-        penjelasanHTML = "<p>Tidak ada kondisi medis spesifik yang terdeteksi.</p>";
-        rekomSet.add("Pertahankan pola hidup sehat");
-    }
-
-    if (unknown.length > 0) {
-        penjelasanHTML += `
-            <p><b>Catatan:</b> Sistem belum dapat menganalisis kondisi berikut:
-            <i>${unknown.join(", ")}</i></p>
-        `;
-        rekomSet.add("Konsultasikan dengan tenaga medis profesional");
-        rekomSet.add("Lakukan pemeriksaan kesehatan lanjutan");
-    }
-
-    const hasil = document.getElementById("hasil");
-    hasil.style.display = "block";
-    hasil.innerHTML = `
-        <div class="judul-hasil">Hasil BMI Kamu</div>
-        <p><strong>${bmi}</strong> — ${kategori}</p>
-
-        <div class="subjudul">Analisis Riwayat Penyakit</div>
-        ${penjelasanHTML}
-
-        <div class="subjudul">Rekomendasi</div>
-        <ul>${[...rekomSet].map(r => `<li>${r}</li>`).join("")}</ul>
-
-        <div class="subjudul">Sumber Rujukan</div>
-<ul>
-${generateSourcesByDomain([...domainSet]).map(
-    s => `
-    <li>
-        <a href="${s.url}" target="_blank" rel="noopener noreferrer">
-            ${s.name}
-        </a>
-        <br>
-        <small>${s.desc}</small>
-    </li>
-    `
-).join("")}
-</ul>
-
-    `;
+ document.getElementById("btnSimpan").style.display="block";
 });
 </script>
 

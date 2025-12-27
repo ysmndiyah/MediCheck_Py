@@ -11,4 +11,5 @@ class BMIResultAdmin(admin.ModelAdmin):
         'created_at'
     )
     list_filter = ('kategori', 'penyakit_terdeteksi')
-    search_fields = ('user__username', 'penyakit_terdeteksi')
+    search_fields = ('user__username', 'user__email')
+    ordering = ('-created_at',)

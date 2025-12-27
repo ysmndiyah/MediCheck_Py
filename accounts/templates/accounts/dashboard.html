@@ -371,6 +371,15 @@
   </style>
 </head>
 <body>
+{% if messages %}
+  {% for message in messages %}
+    <div class="alert alert-success alert-dismissible fade show">
+      {{ message }}
+      <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+  {% endfor %}
+{% endif %}
+
   <div class="dashboard-wrapper">
     <!-- Header -->
     <div class="header-section d-flex justify-content-between align-items-center">
@@ -429,82 +438,149 @@
       <!-- === New Health Features Section === -->
 <div class="main-card mt-5">
 
-  <!-- 🎯 Target Kesehatan -->
-  <section class="health-targets mb-5">
-    <h3 class="section-title text-center mb-4">🎯 Target Kesehatan Anda</h3>
+  <!-- Target Kesehatan -->
+<section class="health-targets mb-5">
+  <h3 class="section-title text-center mb-4 fw-bold">
+    🎯 Target Kesehatan Harian
+  </h3>
+  <p class="text-center text-muted mb-4">
+    Pantau progres berat badan & konsumsi kalori harianmu
+  </p>
 
-    {% if target %}
-    <div class="row justify-content-center">
+  {% if target %}
+  <div class="row justify-content-center">
 
-      <!-- Berat Ideal -->
-      <div class="col-md-5 mb-3">
-        <div class="p-4 bg-light rounded shadow-sm">
-          <h5>Berat Ideal</h5>
-          <p>
-            {{ target.berat_sekarang }} kg /
-            Target {{ target.berat_ideal }} kg
-          </p>
+    <!-- ===== Berat Ideal ===== -->
+    <div class="col-md-6 mb-4">
+      <div class="p-4 bg-light rounded-4 shadow-sm h-100">
+        <h5 class="fw-bold mb-2">⚖️ Berat Badan</h5>
 
-          <div class="progress">
-  <div id="progress-kalori" class="progress-bar bg-info"></div>
-</div>
+        <p class="mb-2 text-muted">
+          {{ target.berat_sekarang }} kg /
+          Target {{ target.berat_ideal }} kg
+        </p>
 
-      <!-- Kalori Harian -->
-<div class="col-md-5 mb-3">
-  <div class="p-4 bg-light rounded shadow-sm">
-    <h5>Kalori Harian</h5>
-    <p>
-      {{ target.kalori_harian }} dari {{ target.kalori_target }} kkal
+        <div class="progress" style="height: 18px;">
+          <div
+            class="progress-bar bg-success"
+            data-progress="{{ target.progress_berat|default:0 }}">
+            {{ target.progress_berat|default:0 }}%
+          </div>
+        </div>
+
+        <small class="text-muted d-block mt-2">
+          Progres menuju berat ideal
+        </small>
+      </div>
+    </div>
+
+
+    <!-- ===== Kalori Harian ===== -->
+    <div class="col-md-6 mb-4">
+      <div class="p-4 bg-light rounded-4 shadow-sm h-100">
+        <h5 class="fw-bold mb-2">🔥 Kalori Harian</h5>
+
+        <p class="mb-2 text-muted">
+          {{ target.kalori_harian }} dari {{ target.kalori_target }} kkal
+        </p>
+
+        <div class="progress" style="height: 18px;">
+          <div
+            class="progress-bar
+            {% if target.progress_kalori < 80 %}
+              bg-info
+            {% elif target.progress_kalori < 100 %}
+              bg-warning
+            {% else %}
+              bg-danger
+            {% endif %}"
+            data-progress="{{ target.progress_kalori|default:0 }}">
+          </div>
+        </div>
+
+        <small class="text-muted d-block mt-2">
+          {% if target.progress_kalori < 80 %}
+            Masih aman 🍎
+          {% elif target.progress_kalori < 100 %}
+            Hampir mencapai batas ⚠️
+          {% else %}
+            Melebihi target ❗
+          {% endif %}
+        </small>
+      </div>
+    </div>
+
+  </div>
+  {% else %}
+    <p class="text-center text-muted">
+      Hitung BMI terlebih dahulu untuk melihat target kesehatan.
+    </p>
+  {% endif %}
+</section>
+
+{% if weekly_logs %}
+<section class="mt-5">
+  <h4 class="text-center fw-bold mb-3">📊 Riwayat Perhitungan BMI</h4>
+
+  <div class="table-responsive">
+    <table class="table table-bordered text-center align-middle">
+      <thead class="table-light">
+        <tr>
+          <th>Tanggal</th>
+          <th>Berat (kg)</th>
+          <th>BMI</th>
+          <th>Kategori</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for log in weekly_logs %}
+        <tr>
+          <td>{{ log.created_at|date:"d M Y" }}</td>
+          <td>{{ log.berat }}</td>
+          <td>{{ log.bmi }}</td>
+          <td>{{ log.kategori }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</section>
+{% else %}
+<p class="text-center text-muted mt-4">
+  Belum ada data perkembangan mingguan.
+</p>
+{% endif %}
+
+<script>
+document.querySelectorAll(".progress-bar").forEach(bar => {
+  const value = bar.dataset.progress || 0;
+  bar.style.width = value + "%";
+});
+</script>
+
+  {# ===== WEEKLY MEAL PLAN ===== #}
+{% if meal_plan %}
+<section class="weekly-meal mt-5">
+  <div class="p-4 bg-white rounded-4 shadow-sm">
+    <h4 class="fw-bold mb-3">🍽 Weekly Meal Plan Kamu</h4>
+
+    <p class="mb-2">
+      <strong>Kondisi Kesehatan:</strong>
+      {{ meal_plan.kondisi_kesehatan }}
     </p>
 
-    <div class="progress">
-      <div class="progress-bar bg-info progress-kalori"
-           data-progress="{{ target.progress_kalori }}">
-      </div>
-    </div>
+    <p class="mb-3">
+      <strong>Alergi Makanan:</strong>
+      {{ meal_plan.alergi_makanan }}
+    </p>
+
+    <a href="{% url 'accounts:tips' %}" class="btn btn-outline-primary rounded-pill">
+      ✏️ Edit Meal Plan
+    </a>
   </div>
-</div>
-    </div>
-    {% else %}
-      <p class="text-center text-muted">
-        Hitung BMI terlebih dahulu untuk melihat target kesehatan.
-      </p>
-      <script>
-  document.getElementById("progress-kalori").style.width =
-    "{{ target.progress_kalori }}%";
-</script>
-    {% endif %}
-  </section>
-</div>
+</section>
+{% endif %}
 
-
-  <!-- 🥗 Rekomendasi Makanan Sehat Hari Ini -->
-  <section class="healthy-foods mb-5">
-    <h3 class="section-title text-center mb-4">🥗 Rekomendasi Makanan Sehat Hari Ini</h3>
-    <div class="row">
-      <div class="col-md-4 mb-4">
-        <div class="food-card p-3 bg-white rounded shadow-sm text-center">
-          <img src="{% static 'images/salad.jpg' %}" alt="Salad" class="img-fluid rounded mb-3" style="height:150px;object-fit:cover;">
-          <h5>Salad Sayur Segar</h5>
-          <p>Tinggi serat, rendah kalori, cocok untuk sarapan sehat.</p>
-        </div>
-      </div>
-      <div class="col-md-4 mb-4">
-        <div class="food-card p-3 bg-white rounded shadow-sm text-center">
-          <img src="{% static 'images/oatmeal.jpg' %}" alt="Oatmeal" class="img-fluid rounded mb-3" style="height:150px;object-fit:cover;">
-          <h5>Oatmeal Madu & Pisang</h5>
-          <p>Sumber energi kompleks untuk aktivitas harian.</p>
-        </div>
-      </div>
-      <div class="col-md-4 mb-4">
-        <div class="food-card p-3 bg-white rounded shadow-sm text-center">
-          <img src="{% static 'images/smoothie.jpg' %}" alt="Smoothie" class="img-fluid rounded mb-3" style="height:150px;object-fit:cover;">
-          <h5>Smoothie Alpukat</h5>
-          <p>Kaya lemak sehat dan membantu menurunkan kolesterol.</p>
-        </div>
-      </div>
-    </div>
-  </section>
 
   <!-- 💬 Tips Mingguan -->
   <section class="weekly-tip text-center p-4 rounded" style="background: linear-gradient(135deg, #f0f9f4, #e0ffe7);">

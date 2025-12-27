@@ -6,6 +6,12 @@ from django.contrib.auth.decorators import login_required
 from .models import BMIResult
 from django.contrib.auth import logout
 from django.http import JsonResponse
+from .models import HealthLog
+from django.utils import timezone
+from datetime import timedelta
+from .models import WeeklyMealPlan
+from datetime import date
+
 
 
 
@@ -18,7 +24,7 @@ def login_view(request):
         # Cari user berdasarkan email
         try:
             user_obj = User.objects.get(email=email)
-            username = user_obj.username  # gunakan username internal
+            username = user_obj.username
         except User.DoesNotExist:
             messages.error(request, "Email tidak ditemukan.")
             return render(request, 'accounts/login.html')
@@ -28,6 +34,12 @@ def login_view(request):
 
         if user is not None:
             login(request, user)
+
+            messages.success(
+                request,
+                f"Selamat datang, {user.first_name or user.username}!"
+            )
+
             return redirect('accounts:dashboard')
 
         else:
@@ -200,28 +212,73 @@ def logout_view(request):
     messages.success(request, "Berhasil logout.")
     return redirect('accounts:login')
 
-
-
 def monitor_view(request):
     return render(request, 'accounts/monitor.html')
 
+@login_required(login_url='accounts:login')
 def tips_view(request):
-    return render(request, 'accounts/tips.html')
+    today = date.today()
+    current_week = today.isocalendar()[1]
+    current_year = today.year
 
+    # Ambil meal plan minggu ini (kalau ada)
+    meal_plan = WeeklyMealPlan.objects.filter(
+        user=request.user,
+        week=current_week,
+        year=current_year
+    ).first()
+
+    if request.method == "POST":
+        kondisi = request.POST.get("kondisi_kesehatan")
+        alergi = request.POST.get("alergi_makanan")
+
+        # create atau update (anti duplikat)
+        WeeklyMealPlan.objects.update_or_create(
+            user=request.user,
+            week=current_week,
+            year=current_year,
+            defaults={
+                "kondisi_kesehatan": kondisi,
+                "alergi_makanan": alergi
+            }
+        )
+
+        messages.success(request, "Meal plan minggu ini berhasil disimpan ✨")
+        return redirect("accounts:dashboard")
+
+    return render(request, "accounts/tips.html", {
+        "meal_plan": meal_plan,
+        "week": current_week,
+        "year": current_year
+    })
 
 @login_required(login_url='accounts:login')
 def dashboard_view(request):
     last_bmi = BMIResult.objects.filter(user=request.user).last()
-
     target = None
+        # ===== RIWAYAT BMI 7 DATA TERAKHIR =====
+    weekly_logs = BMIResult.objects.filter(
+        user=request.user
+    ).order_by('-created_at')[:7]
+
+    # ===== WEEKLY MEAL PLAN TERAKHIR =====
+    meal_plan = WeeklyMealPlan.objects.filter(
+        user=request.user
+    ).order_by('-created_at').first()
+
+
+    # ===================== TARGET HARIAN  =====================
+    meal_plan = WeeklyMealPlan.objects.filter(user=request.user).last()
 
     if last_bmi:
         tinggi_m = last_bmi.tinggi / 100
-        berat_ideal = round(22 * (tinggi_m ** 2), 1)
-        progress_berat = min(round((berat_ideal / last_bmi.berat) * 100, 0), 100)
 
-        kalori_target = round(22 * last_bmi.berat * 30)
-        kalori_harian = round(kalori_target * 0.65)
+        berat_ideal = round(22 * (tinggi_m ** 2), 1)
+        progress_berat = round((last_bmi.berat / berat_ideal) * 100, 0)
+        progress_berat = min(progress_berat, 100)
+
+        kalori_target = round(last_bmi.berat * 30)
+        kalori_harian = round(kalori_target * 0.7)
         progress_kalori = round((kalori_harian / kalori_target) * 100, 0)
 
         target = {
@@ -233,15 +290,29 @@ def dashboard_view(request):
             "progress_kalori": progress_kalori,
         }
 
-    messages.success(
-        request,
-        f"Selamat datang, {request.user.first_name or request.user.username}!"
-    )
+        return render(request, 'accounts/dashboard.html', {
+        'last_bmi': last_bmi,
+        'target': target,
+        'weekly_logs': weekly_logs,
+        'meal_plan': meal_plan,
+    })
+
+
+    # =====================  TAMBAHAN: PROGRES MINGGUAN =====================
+    seminggu_lalu = timezone.now() - timedelta(days=7)
+
+    weekly_logs = BMIResult.objects.filter(
+        user=request.user,
+        created_at__gte=seminggu_lalu
+    ).order_by("created_at")
 
     return render(request, 'accounts/dashboard.html', {
         'last_bmi': last_bmi,
-        'target': target
+        'target': target,
+        'weekly_logs': weekly_logs,  
     })
+
+
 
 def chatbot_api(request):
     user_msg = request.GET.get('msg', '').lower()
