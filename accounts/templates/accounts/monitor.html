@@ -74,6 +74,10 @@ h1 {
 </head>
 
 <body>
+    <form id="mentalForm">
+  {% csrf_token %}
+</form>
+
 
 <div class="card">
 
@@ -178,10 +182,21 @@ function showResult() {
     `;
 
     document.getElementById("questionBox").innerHTML = "";
+
+    // ================= SIMPAN KE DATABASE =================
+    fetch("", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/x-www-form-urlencoded",
+            "X-CSRFToken": document.querySelector('[name=csrfmiddlewaretoken]').value
+        },
+        body: new URLSearchParams({
+            score: totalScore,
+            kondisi: title
+        })
+    });
 }
 
-/* ================= INIT ================= */
-renderQuestion();
 </script>
 
 </body>

@@ -11,6 +11,7 @@ from django.utils import timezone
 from datetime import timedelta
 from .models import WeeklyMealPlan
 from datetime import date
+from .models import MentalHealthLog
 
 
 
@@ -212,44 +213,57 @@ def logout_view(request):
     messages.success(request, "Berhasil logout.")
     return redirect('accounts:login')
 
+@login_required
 def monitor_view(request):
+    if request.method == "POST":
+        score = request.POST.get("score")
+        kondisi = request.POST.get("kondisi")
+
+        MentalHealthLog.objects.create(
+            user=request.user,
+            score=score,
+            kondisi=kondisi
+        )
+
+        return JsonResponse({"status": "ok"})
+
     return render(request, 'accounts/monitor.html')
 
 @login_required(login_url='accounts:login')
 def tips_view(request):
     today = date.today()
-    current_week = today.isocalendar()[1]
-    current_year = today.year
+    week = today.isocalendar()[1]
+    year = today.year
 
-    # Ambil meal plan minggu ini (kalau ada)
     meal_plan = WeeklyMealPlan.objects.filter(
         user=request.user,
-        week=current_week,
-        year=current_year
+        week=week,
+        year=year
     ).first()
 
-    if request.method == "POST":
-        kondisi = request.POST.get("kondisi_kesehatan")
-        alergi = request.POST.get("alergi_makanan")
+    if request.method == 'POST':
+        kondisi = request.POST.get('kondisi_kesehatan')
+        alergi = request.POST.get('alergi_makanan')
 
-        # create atau update (anti duplikat)
-        WeeklyMealPlan.objects.update_or_create(
-            user=request.user,
-            week=current_week,
-            year=current_year,
-            defaults={
-                "kondisi_kesehatan": kondisi,
-                "alergi_makanan": alergi
-            }
-        )
+        if meal_plan:
+            # UPDATE
+            meal_plan.kondisi_kesehatan = kondisi
+            meal_plan.alergi_makanan = alergi
+            meal_plan.save()
+        else:
+            # CREATE
+            WeeklyMealPlan.objects.create(
+                user=request.user,
+                kondisi_kesehatan=kondisi,
+                alergi_makanan=alergi,
+                week=week,
+                year=year
+            )
 
-        messages.success(request, "Meal plan minggu ini berhasil disimpan ✨")
-        return redirect("accounts:dashboard")
+        return redirect('accounts:dashboard')
 
-    return render(request, "accounts/tips.html", {
-        "meal_plan": meal_plan,
-        "week": current_week,
-        "year": current_year
+    return render(request, 'accounts/weaklymeal.html', {
+        'meal_plan': meal_plan
     })
 
 @login_required(login_url='accounts:login')
@@ -260,12 +274,6 @@ def dashboard_view(request):
     weekly_logs = BMIResult.objects.filter(
         user=request.user
     ).order_by('-created_at')[:7]
-
-    # ===== WEEKLY MEAL PLAN TERAKHIR =====
-    meal_plan = WeeklyMealPlan.objects.filter(
-        user=request.user
-    ).order_by('-created_at').first()
-
 
     # ===================== TARGET HARIAN  =====================
     meal_plan = WeeklyMealPlan.objects.filter(user=request.user).last()
@@ -312,7 +320,38 @@ def dashboard_view(request):
         'weekly_logs': weekly_logs,  
     })
 
+@login_required(login_url='accounts:login')
+def weekly_meal_view(request):
+    today = date.today()
+    week = today.isocalendar()[1]
+    year = today.year
 
+    meal_plan = WeeklyMealPlan.objects.filter(
+        user=request.user,
+        week=week,
+        year=year
+    ).first()
+
+    if request.method == "POST":
+        kondisi = request.POST.get("kondisi_kesehatan")
+        alergi = request.POST.get("alergi_makanan")
+
+        WeeklyMealPlan.objects.update_or_create(
+            user=request.user,
+            week=week,
+            year=year,
+            defaults={
+                "kondisi_kesehatan": kondisi,
+                "alergi_makanan": alergi
+            }
+        )
+
+        messages.success(request, "Weekly Meal Plan berhasil disimpan 💾")
+        return redirect("accounts:dashboard")
+
+    return render(request, "accounts/weaklymeal.html", {
+        "meal_plan": meal_plan
+    })
 
 def chatbot_api(request):
     user_msg = request.GET.get('msg', '').lower()

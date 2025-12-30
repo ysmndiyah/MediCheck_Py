@@ -560,19 +560,12 @@ document.querySelectorAll(".progress-bar").forEach(bar => {
 
   {# ===== WEEKLY MEAL PLAN ===== #}
 {% if meal_plan %}
-<section class="weekly-meal mt-5">
+<section class="mt-5">
   <div class="p-4 bg-white rounded-4 shadow-sm">
-    <h4 class="fw-bold mb-3">🍽 Weekly Meal Plan Kamu</h4>
+    <h4 class="fw-bold">🍽 Weekly Meal Plan Kamu</h4>
 
-    <p class="mb-2">
-      <strong>Kondisi Kesehatan:</strong>
-      {{ meal_plan.kondisi_kesehatan }}
-    </p>
-
-    <p class="mb-3">
-      <strong>Alergi Makanan:</strong>
-      {{ meal_plan.alergi_makanan }}
-    </p>
+    <p><strong>Kondisi:</strong> {{ meal_plan.kondisi_kesehatan }}</p>
+    <p><strong>Alergi:</strong> {{ meal_plan.alergi_makanan }}</p>
 
     <a href="{% url 'accounts:tips' %}" class="btn btn-outline-primary rounded-pill">
       ✏️ Edit Meal Plan
@@ -580,7 +573,6 @@ document.querySelectorAll(".progress-bar").forEach(bar => {
   </div>
 </section>
 {% endif %}
-
 
   <!-- 💬 Tips Mingguan -->
   <section class="weekly-tip text-center p-4 rounded" style="background: linear-gradient(135deg, #f0f9f4, #e0ffe7);">

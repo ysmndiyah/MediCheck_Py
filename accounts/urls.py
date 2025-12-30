@@ -12,4 +12,7 @@ urlpatterns = [
     path('tips/', views.tips_view, name='tips'),
     path('chatbot-api/', views.chatbot_api, name='chatbot_api'),
     path('logout/', views.logout_view, name='logout'),
+    path("weekly-meal/", views.weekly_meal_view, name="weekly_meal"),
+
+
 ]

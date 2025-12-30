@@ -4,7 +4,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Personalized Weekly Meal Plan</title>
+<title>Weekly Meal Plan</title>
 
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
 
@@ -14,36 +14,21 @@ body {
     font-family: 'Poppins', sans-serif;
     padding: 40px 15px;
 }
-
 .container-box {
-    max-width: 720px;
+    max-width: 700px;
     margin: auto;
     background: white;
-    padding: 30px;
+    padding: 35px;
     border-radius: 22px;
     box-shadow: 0 10px 25px rgba(0,0,0,0.15);
 }
-
-h1 {
-    text-align: center;
-    font-weight: 700;
-    margin-bottom: 25px;
-}
-
-label {
-    font-weight: 600;
-    margin-top: 15px;
-}
-
 input {
     width: 100%;
     padding: 12px;
     border-radius: 12px;
     border: 2px solid #ddd;
 }
-
 button {
-    margin-top: 25px;
     width: 100%;
     padding: 14px;
     border-radius: 14px;
@@ -52,32 +37,24 @@ button {
     background: linear-gradient(90deg, #6f3cff, #b34cff);
     color: white;
 }
-
-.result {
-    margin-top: 30px;
-    background: #f8f5ff;
-    padding: 20px;
-    border-radius: 16px;
-}
 </style>
 </head>
 
 <body>
 
+<form method="POST">
+    {% csrf_token %}
+
 <div class="container-box">
+<h1 class="text-center">🥗 Weakly Meal Plan</h1>
+<label class="fw-bold mt-3">Kondisi Kesehatan</label>
+<input id="penyakitInput" placeholder="contoh: diabetes, asma" required>
+<label class="fw-bold mt-3">Alergi Makanan</label>
+<input id="alergiInput" placeholder="contoh: seafood, susu" required>
 
-<h1>🥗 Personalized Weekly Meal Plan</h1>
-
-<label>Penyakit / Kondisi Kesehatan</label>
-<input id="penyakitInput" placeholder="contoh: diabetes, hipertensi" required>
-
-<label>Alergi Makanan</label>
-<input id="alergiInput" required
-       placeholder="contoh: seafood, susu, kacang">
-<small class="text-muted">
-Wajib diisi, boleh lebih dari satu (pisahkan dengan koma atau kata "dan")
-</small>
-
+<!-- HIDDEN INPUT -->
+<input type="hidden" name="kondisi_kesehatan" id="hiddenKondisi">
+<input type="hidden" name="alergi_makanan" id="hiddenAlergi">
 
 <button type="button" id="generateBtn" class="mt-4">Buat Meal Plan Mingguan</button>
 
@@ -85,10 +62,11 @@ Wajib diisi, boleh lebih dari satu (pisahkan dengan koma atau kata "dan")
 
 <button type="submit" id="btnSimpan" class="mt-4" style="display:none;">💾 Simpan Weakly Meal Plan</button>
 
-
-<a href="{% url 'accounts:dashboard' %}" class="btn btn-link mt-3">← Kembali ke Dashboard</a>
-
+<a href="{% url 'accounts:dashboard' %}" class="btn btn-link mt-3">
+← Kembali ke Dashboard
+</a>
 </div>
+</form>
 
 <script>
 /* ================= KNOWLEDGE BASE ================= */
@@ -211,10 +189,13 @@ const alergiList = alergiText
   const result = document.getElementById("result");
   result.style.display = "block";
   result.innerHTML = html;
+  document.getElementById("btnSimpan").style.display = "block";
+  document.getElementById("hiddenKondisi").value = penyakit;
+  document.getElementById("hiddenAlergi").value = alergiText;
+
 });
 
 
 </script>
-
 </body>
 </html>
