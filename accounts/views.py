@@ -12,7 +12,7 @@ from datetime import timedelta
 from .models import WeeklyMealPlan
 from datetime import date
 from .models import MentalHealthLog
-
+from django.contrib.admin.views.decorators import staff_member_required
 
 
 
@@ -22,7 +22,7 @@ def login_view(request):
         email = request.POST.get('email', '').strip().lower()
         password = request.POST.get('password', '')
 
-        # Cari user berdasarkan email
+        # ================= CARI USER BERDASARKAN EMAIL =================
         try:
             user_obj = User.objects.get(email=email)
             username = user_obj.username
@@ -30,7 +30,7 @@ def login_view(request):
             messages.error(request, "Email tidak ditemukan.")
             return render(request, 'accounts/login.html')
 
-        # Autentikasi
+        # ================= AUTENTIKASI =================
         user = authenticate(request, username=username, password=password)
 
         if user is not None:
@@ -41,14 +41,30 @@ def login_view(request):
                 f"Selamat datang, {user.first_name or user.username}!"
             )
 
-            return redirect('accounts:dashboard')
+            # ================= PEMISAHAN ROLE =================
+            if user.is_staff:
+                return redirect('accounts:admin_dashboard')
+            else:
+                return redirect('accounts:dashboard')
 
         else:
             messages.error(request, "Password salah.")
-            return render(request, 'accounts/login.html')
 
     return render(request, 'accounts/login.html')
+ 
+ # === admin_dashboard_view ===
+@staff_member_required(login_url='accounts:login')
+def admin_dashboard_view(request):
+    context = {
+        'total_users': User.objects.filter(is_staff=False).count(),
+        'total_admins': User.objects.filter(is_staff=True).count(),
+        'total_bmi': BMIResult.objects.count(),
+        'total_mealplan': WeeklyMealPlan.objects.count(),
+        'total_mental': MentalHealthLog.objects.count(),
+        'latest_bmi': BMIResult.objects.order_by('-created_at')[:5],
+    }
 
+    return render(request, 'accounts/admin_dashboard.html', context)
 
 # ===================== REGISTER DENGAN EMAIL & NAMA LENGKAP =====================
 def register_view(request):
