@@ -14,6 +14,5 @@ urlpatterns = [
     path('logout/', views.logout_view, name='logout'),
     path("weekly-meal/", views.weekly_meal_view, name="weekly_meal"),
     path('admin-dashboard/', views.admin_dashboard_view, name='admin_dashboard'),
-
-
+    path("chatbot/api/", views.chatbot_api, name="chatbot_api"),
 ]

@@ -88,67 +88,37 @@ input {
 <input type="text" id="riwayat" name="penyakit" required
 placeholder="Contoh: diabetes dan sesak nafas">
 
-<button type="button" id="btnHitung" class="btn-bmi btn-hit">🔥 Hitung BMI</button>
+<button type="submit" class="btn-bmi btn-hit">🔥 Hitung BMI</button>
 
-<div id="hasil" class="hasil-card"></div>
+{% if bmi %}
+<div id="hasil" class="hasil-card" style="display:block;">
+    <h3>Hasil BMI</h3>
+    <p><b>{{ bmi }}</b> ({{ kategori }})</p>
+
+    <h4>Rekomendasi</h4>
+    <ul>
+        {% for r in rekomendasi %}
+            <li>{{ r }}</li>
+        {% empty %}
+            <li>Tidak ada rekomendasi khusus.</li>
+        {% endfor %}
+    </ul>
+
+    <h4>Sumber</h4>
+    {% if sumber %}
+        <a href="{{ sumber }}" target="_blank">{{ sumber }}</a>
+    {% else %}
+        <p>-</p>
+    {% endif %}
+</div>
+{% endif %}
 
 <button type="submit" id="btnSimpan" class="btn-bmi btn-save">💾 Simpan & Lihat Target Kesehatan</button>
 
 </div>
 </form>
 
-<script>
-const penyakitData = [
- { label:"Diabetes", aliases:["diabetes"], domain:"metabolic",
-   rekom:["Batasi gula","Perbanyak serat"] },
- { label:"Hipertensi", aliases:["hipertensi","darah tinggi"], domain:"cardiovascular",
-   rekom:["Kurangi garam","Olahraga rutin"] },
- { label:"Gangguan Pernapasan", aliases:["sesak nafas","asma"], domain:"respiratory",
-   rekom:["Hindari asap rokok"] }
-];
 
-const domainSources = {
- metabolic:[{name:"WHO",url:"https://www.who.int"}],
- cardiovascular:[{name:"AHA",url:"https://www.heart.org"}],
- respiratory:[{name:"WHO Asthma",url:"https://www.who.int/health-topics/asthma"}]
-};
-
-document.getElementById("btnHitung").addEventListener("click", () => {
- const berat = Number(document.getElementById("berat").value);
- const tinggi = Number(document.getElementById("tinggi").value);
- const riwayat = document.getElementById("riwayat").value.toLowerCase();
-
- if(!berat || !tinggi || !riwayat){
-   alert("Semua field wajib diisi");
-   return;
- }
-
- const bmi = (berat / ((tinggi/100)**2)).toFixed(1);
- const kategori = bmi<18.5?"Kurus":bmi<25?"Normal":bmi<30?"Gemuk":"Obesitas";
-
- let rekom = new Set(), domain = new Set();
- penyakitData.forEach(p=>{
-   if(p.aliases.some(a=>riwayat.includes(a))){
-     p.rekom.forEach(r=>rekom.add(r));
-     domain.add(p.domain);
-   }
- });
-
- const hasil = document.getElementById("hasil");
- hasil.style.display="block";
- hasil.innerHTML=`
-   <h3>Hasil BMI</h3>
-   <p><b>${bmi}</b> (${kategori})</p>
-   <h4>Rekomendasi</h4>
-   <ul>${[...rekom].map(r=>`<li>${r}</li>`).join("")}</ul>
-   <h4>Sumber</h4>
-   <ul>${[...domain].flatMap(d=>domainSources[d]||[])
-     .map(s=>`<li><a href="${s.url}" target="_blank">${s.name}</a></li>`).join("")}</ul>
- `;
-
- document.getElementById("btnSimpan").style.display="block";
-});
-</script>
 
 </body>
 </html>

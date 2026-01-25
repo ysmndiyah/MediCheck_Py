@@ -558,21 +558,7 @@ document.querySelectorAll(".progress-bar").forEach(bar => {
 });
 </script>
 
-  {# ===== WEEKLY MEAL PLAN ===== #}
-{% if meal_plan %}
-<section class="mt-5">
-  <div class="p-4 bg-white rounded-4 shadow-sm">
-    <h4 class="fw-bold">🍽 Weekly Meal Plan Kamu</h4>
-
-    <p><strong>Kondisi:</strong> {{ meal_plan.kondisi_kesehatan }}</p>
-    <p><strong>Alergi:</strong> {{ meal_plan.alergi_makanan }}</p>
-
-    <a href="{% url 'accounts:tips' %}" class="btn btn-outline-primary rounded-pill">
-      ✏️ Edit Meal Plan
-    </a>
-  </div>
-</section>
-{% endif %}
+  
 
   <!-- 💬 Tips Mingguan -->
   <section class="weekly-tip text-center p-4 rounded" style="background: linear-gradient(135deg, #f0f9f4, #e0ffe7);">
@@ -736,91 +722,9 @@ document.querySelectorAll(".progress-bar").forEach(bar => {
     </div>
 </div>
 
-<script>
-    const btn = document.getElementById("chatbot-btn");
-    const box = document.getElementById("chatbot-box");
-
-    btn.onclick = () => {
-        box.style.display = box.style.display === "block" ? "none" : "block";
-    };
-
-    function sendMessage() {
-        let input = document.getElementById("chat-input");
-        let msg = input.value.trim();
-        if (!msg) return;
-
-        addUserMessage(msg);
-        input.value = "";
-
-        // Balasan simple chatbot
-        setTimeout(() => {
-            addBotMessage(botReply(msg));
-        }, 500);
-    }
-
-    function addUserMessage(text) {
-        document.getElementById("chat-body").innerHTML += `
-            <div class="message user">
-                <img src="{% static 'chatbot/user.jpg' %}">
-                <div class="bubble">${text}</div>
-            </div>`;
-    }
-
-    function addBotMessage(text) {
-        document.getElementById("chat-body").innerHTML += `
-            <div class="message bot">
-                <img src="{% static 'chatbot/bot.jpg' %}">
-                <div class="bubble">${text}</div>
-            </div>`;
-    }
-
-    function botReply(msg) {
-    msg = msg.toLowerCase();
-
-    // ======== SAPAAN ========
-    if (msg.match(/(halo|hai|hei|hey|hi|pagi|siang|malam)/)) {
-        return "Halo Ipa! 👋 Ada yang bisa MediBot bantu hari ini?";
-    }
-
-    // ======== TANYA BMI ========
-    if (msg.includes("bmi") || msg.includes("berat badan") || msg.includes("tinggi badan")) {
-        return "Untuk cek BMI, kamu bisa buka menu *Kalkulator BMI*. Kalau mau aku hitung di sini juga boleh, tinggal kirim berat dan tinggi kamu 😊";
-    }
-
-    // ======== TIPS KESEHATAN ========
-    if (msg.includes("tips") || msg.includes("sehat") || msg.includes("makan apa")) {
-        return "Tips sehat hari ini 🍎:\n• Minum air putih 2 liter\n• Hindari gorengan\n• Jalan kaki 10 menit\n• Tidur cukup 7–8 jam\nButuh tips lain?";
-    }
-
-    // ======== MONITOR KESEHATAN ========
-    if (msg.includes("monitor") || msg.includes("perkembangan") || msg.includes("riwayat")) {
-        return "Kamu bisa lihat grafik perkembangan kesehatanmu di menu *Monitor Kesehatan*. Mau aku arahkan ke sana?";
-    }
-
-    // ======== PERTANYAAN UMUM ========
-    if (msg.includes("siapa kamu")) {
-        return "Aku MediBot 🤖, asisten kesehatan di websitemu!";
-    }
-    if (msg.includes("buat apa")) {
-        return "Aku bantu kamu cek BMI, kasih tips nutrisi, dan memantau perkembangan kesehatanmu 💙";
-    }
-    if (msg.includes("kamu bisa apa")) {
-        return "Aku bisa bantu cek BMI, kasih tips kesehatan, jawaban nutrisi, dan nemenin kamu biar makin sehat 😄";
-    }
-
-    // ======== EMOSI ========
-    if (msg.includes("capek") || msg.includes("stress") || msg.includes("sedih") || msg.includes("pusing")) {
-        return "Ipaaa 🤗💙 coba istirahat sebentar ya. Tarik napas… kamu hebat kok.";
-    }
-
-    // ======== JIKA TIDAK MENGERTI ========
-    return "Hmm aku belum mengerti 😅. Coba tanya tentang BMI, tips kesehatan, nutrisi, atau monitor kesehatan ya.";
-}
-
-
-</script>
-
-
+{% load static %}
+<script src="{% static 'accounts/js/chatbot.js' %}"></script>
 
 </body>
 </html>
+

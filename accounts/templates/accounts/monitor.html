@@ -70,6 +70,12 @@ h1 {
     color: #555;
     font-size: 14px;
 }
+
+.catatan-medis {
+        color:red;
+        font-weight: bold;
+    }
+    
 </style>
 </head>
 
@@ -178,7 +184,8 @@ function showResult() {
         <h3>${title}</h3>
         <p>${message}</p>
         <p><b>Saran:</b> ${advice}</p>
-        <p><small>Catatan: fitur ini bukan alat diagnosis medis.</small></p>
+        <p><small class="catatan-medis">Catatan: fitur ini bukan alat diagnosis medis.</small></p>
+
     `;
 
     document.getElementById("questionBox").innerHTML = "";
@@ -196,7 +203,7 @@ function showResult() {
         })
     });
 }
-
+renderQuestion();
 </script>
 
 </body>

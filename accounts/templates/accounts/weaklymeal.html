@@ -42,160 +42,122 @@ button {
 
 <body>
 
-<form method="POST">
-    {% csrf_token %}
+<form method="POST" id="mealForm">
+  {% csrf_token %}
 
-<div class="container-box">
-<h1 class="text-center">🥗 Weakly Meal Plan</h1>
-<label class="fw-bold mt-3">Kondisi Kesehatan</label>
-<input id="penyakitInput" placeholder="contoh: diabetes, asma" required>
-<label class="fw-bold mt-3">Alergi Makanan</label>
-<input id="alergiInput" placeholder="contoh: seafood, susu" required>
-
-<!-- HIDDEN INPUT -->
-<input type="hidden" name="kondisi_kesehatan" id="hiddenKondisi">
-<input type="hidden" name="alergi_makanan" id="hiddenAlergi">
-
-<button type="button" id="generateBtn" class="mt-4">Buat Meal Plan Mingguan</button>
-
-<div id="result" class="mt-4" style="display:none;"></div>
-
-<button type="submit" id="btnSimpan" class="mt-4" style="display:none;">💾 Simpan Weakly Meal Plan</button>
-
-<a href="{% url 'accounts:dashboard' %}" class="btn btn-link mt-3">
-← Kembali ke Dashboard
-</a>
-</div>
+  <div class="container-box">
+    <h1 class="text-center">🥗 Weekly Meal Plan</h1>
+    <label class="fw-bold mt-3">Kondisi Kesehatan</label>
+    <input id="penyakitInput" placeholder="contoh: diabetes, asma" required>
+    <label class="fw-bold mt-3">Alergi Makanan</label>
+    <input id="alergiInput" placeholder="contoh: seafood, susu" required>
+    <input type="hidden" name="meal_plan" id="hiddenMealPlan">
+    <button type="button" id="generateBtn" class="mt-4">⚙️ Buat Meal Plan</button>
+    <div id="result" class="mt-4" style="display:none;"></div>
+    <button type="button" id="downloadBtn" class="mt-3" style="display:none;">⬇️ Unduh Meal Plan</button>
+    <button type="submit" id="saveBtn" class="mt-3" style="display:none;"> 💾 Simpan ke Sistem</button>
+    <a href="{% url 'accounts:dashboard' %}" class="btn btn-link mt-3">← Kembali ke Dashboard</a>
+  </div>
 </form>
 
 <script>
-/* ================= KNOWLEDGE BASE ================= */
+const penyakitInput = document.getElementById("penyakitInput");
+const alergiInput = document.getElementById("alergiInput");
+const result = document.getElementById("result");
+const hiddenMealPlan = document.getElementById("hiddenMealPlan");
+const mealForm = document.getElementById("mealForm");
+
 const kondisiData = [
-  {
-    keywords: ["diabetes"],
-    avoid: ["gula", "minuman manis"],
-    focus: ["serat", "protein", "karbo kompleks"]
-  },
-  {
-    keywords: ["hipertensi", "darah tinggi"],
-    avoid: ["garam", "makanan instan"], 
-    focus: ["sayur", "buah", "kalium"]
-  },
-  {
-    keywords: ["jantung"],
-    avoid: ["lemak jenuh", "gorengan"],
-    focus: ["ikan", "oatmeal", "lemak sehat"]
-  },
-  {
-    keywords: ["asma", "sesak"],
-    avoid: ["makanan olahan"],
-    focus: ["antioksidan", "vitamin c"]
-  }
+  { keywords:["diabetes"], avoid:["gula","minuman manis"], focus:["serat","protein","karbo kompleks"] },
+  { keywords:["hipertensi","darah tinggi"], avoid:["garam","makanan instan"], focus:["sayur","buah"] },
+  { keywords:["asma","sesak"], avoid:["makanan olahan"], focus:["antioksidan"] }
 ];
 
-/* ================= DATABASE MENU ================= */
 const mealDB = {
-  sarapan: [
-    "Oatmeal dengan buah",
-    "Telur rebus & roti gandum",
-    "Smoothie sayur",
-    "Yogurt rendah lemak",
-    "Bubur kacang hijau"
-  ],
-  siang: [
-    "Nasi merah + ikan kukus",
-    "Salad ayam panggang",
-    "Sup sayur bening",
-    "Tumis tahu tempe",
-    "Sop ayam rendah garam"
-  ],
-  malam: [
-    "Sup sayur",
-    "Ikan panggang",
-    "Tumis brokoli",
-    "Salad sayur",
-    "Telur rebus & sayur"
-  ]
+  sarapan:["Oatmeal","Telur rebus","Smoothie"],
+  siang:["Nasi merah + ikan","Sup sayur","Tumis tahu"],
+  malam:["Ikan panggang","Sup bening","Salad"]
 };
 
-/* ================= GENERATE ================= */
 document.getElementById("generateBtn").addEventListener("click", () => {
-  const penyakit = document.getElementById("penyakitInput").value.toLowerCase();
-const alergiText = document.getElementById("alergiInput").value.toLowerCase();
+  const penyakit = penyakitInput.value.toLowerCase().trim();
+  const alergi = alergiInput.value.toLowerCase().trim();
 
-if (!penyakit || !alergiText) {
-  alert("Penyakit dan alergi makanan wajib diisi");
-  return;
-}
+  if (!penyakit || !alergi) {
+    alert("Semua field wajib diisi");
+    return;
+  }
 
-const alergiList = alergiText
-  .split(/,|dan|;/)
-  .map(a => a.trim())
-  .filter(a => a);
-
-  let avoid = [];
-  let focus = [];
-
+  let focus = [], avoid = [];
   kondisiData.forEach(k => {
     if (k.keywords.some(w => penyakit.includes(w))) {
-      avoid.push(...k.avoid);
       focus.push(...k.focus);
+      avoid.push(...k.avoid);
     }
   });
 
-    if (focus.length === 0) {
-  focus = ["makanan seimbang", "protein cukup", "sayur dan buah"];
-  avoid = ["makanan ultra-proses", "gula berlebih"];
-}
+  if (!focus.length) {
+    focus = ["makan seimbang","protein cukup"];
+    avoid = ["gula berlebih"];
+  }
 
-  let html = `<h5>🎯 Fokus Nutrisi</h5>
-  <ul>${focus.map(f => `<li>${f}</li>`).join("")}</ul>
+  let html = `
+    <h5>🎯 Fokus Nutrisi</h5>
+    <ul>${focus.map(f=>`<li>${f}</li>`).join("")}</ul>
 
-  <h5>🚫 Perlu Dihindari</h5>
-  <ul>${avoid.map(a => `<li>${a}</li>`).join("")}</ul>`;
+    <h5>🚫 Hindari</h5>
+    <ul>${avoid.map(a=>`<li>${a}</li>`).join("")}</ul>
 
-  html += `<p><b>Alergi terdeteksi:</b> ${alergiList.join(", ")}</p>`;
-
-  html += `<h5 class="mt-4">📅 Meal Plan 7 Hari</h5>`;
-
-  for (let i = 1; i <= 7; i++) {
-
-  const safeSarapan = mealDB.sarapan.filter(m =>
-    !alergiList.some(a => m.toLowerCase().includes(a))
-  );
-
-  const safeSiang = mealDB.siang.filter(m =>
-    !alergiList.some(a => m.toLowerCase().includes(a))
-  );
-
-  const safeMalam = mealDB.malam.filter(m =>
-    !alergiList.some(a => m.toLowerCase().includes(a))
-  );
-
-  // ✅ TARUH DI SINI
-  const pick = (arr) => arr.length
-    ? arr[i % arr.length]
-    : "Menu aman terbatas";
-
-  // ✅ BARU OUTPUT
-  html += `
-    <p><b>Hari ${i}</b><br>
-    Sarapan: ${pick(safeSarapan)}<br>
-    Siang: ${pick(safeSiang)}<br>
-    Malam: ${pick(safeMalam)}</p>
+    <h5 class="mt-3">📅 Meal Plan 7 Hari</h5>
   `;
-}
 
-  const result = document.getElementById("result");
+  for (let i=1;i<=7;i++){
+    html += `
+      <p><b>Hari ${i}</b><br>
+      Sarapan: ${mealDB.sarapan[i%3]}<br>
+      Siang: ${mealDB.siang[i%3]}<br>
+      Malam: ${mealDB.malam[i%3]}</p>
+    `;
+  }
+
   result.style.display = "block";
   result.innerHTML = html;
-  document.getElementById("btnSimpan").style.display = "block";
-  document.getElementById("hiddenKondisi").value = penyakit;
-  document.getElementById("hiddenAlergi").value = alergiText;
+  hiddenMealPlan.value = html;
+  document.getElementById("downloadBtn").style.display = "block";
 
 });
-
-
 </script>
+
+<script>
+document.getElementById("downloadBtn").addEventListener("click", () => {
+  const content = document.getElementById("hiddenMealPlan").value;
+
+  if (!content) {
+    alert("Meal plan belum tersedia");
+    return;
+  }
+
+  // Bersihkan HTML → teks biasa
+  const text = content
+    .replace(/<br>/g, "\n")
+    .replace(/<\/p>/g, "\n\n")
+    .replace(/<[^>]*>/g, "");
+
+  const blob = new Blob([text], { type: "text/plain;charset=utf-8" });
+  const url = URL.createObjectURL(blob);
+
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = "weekly_meal_plan.txt";
+  document.body.appendChild(a);
+  a.click();
+
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+});
+</script>
+
+
+
 </body>
 </html>

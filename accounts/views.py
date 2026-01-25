@@ -13,7 +13,15 @@ from .models import WeeklyMealPlan
 from datetime import date
 from .models import MentalHealthLog
 from django.contrib.admin.views.decorators import staff_member_required
+from django.views.decorators.csrf import csrf_exempt
+import json
+import os
+from openai import OpenAI
 
+print("OPENAI KEY:", os.getenv("OPENAI_API_KEY"))
+
+
+client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
 
 # ===================== LOGIN DENGAN EMAIL =====================
@@ -120,98 +128,69 @@ def bmi_view(request):
     kategori = None
     rekomendasi = []
     penyakit = None
-
+    sumber = None
 
     if request.method == 'POST':
         try:
             berat = float(request.POST.get('berat'))
             tinggi_cm = float(request.POST.get('tinggi'))
+            penyakit = request.POST.get('penyakit', '').lower()
+
             tinggi = tinggi_cm / 100
-            penyakit = request.POST.get('penyakit')
+            bmi = round(berat / (tinggi ** 2), 1)
 
-            bmi = berat / (tinggi ** 2)
-
-            # ================= KATEGORI BMI =================
+            # ===== KATEGORI BMI =====
             if bmi < 18.5:
                 kategori = "Kurus"
-                rekomendasi += [
-                    "Makan lebih sering dengan porsi kecil.",
-                    "Makanan tinggi protein seperti telur, ayam, ikan.",
-                    "Tambahkan kalori sehat seperti alpukat dan kacang-kacangan."
+                rekomendasi = [
+                    "Makan lebih sering dengan porsi kecil",
+                    "Perbanyak protein",
+                    "Tambahkan kalori sehat"
                 ]
+                sumber = "https://www.who.int"
 
-            elif 18.5 <= bmi < 25:
+            elif bmi < 25:
                 kategori = "Normal (Ideal)"
-                rekomendasi += [
-                    "Pertahankan pola makan seimbang.",
-                    "Rutin olahraga minimal 3x seminggu.",
-                    "Perbanyak minum air putih."
+                rekomendasi = [
+                    "Pertahankan pola makan seimbang",
+                    "Olahraga rutin",
+                    "Cukup minum air putih"
                 ]
+                sumber = "https://www.who.int"
 
-            elif 25 <= bmi < 30:
+            elif bmi < 30:
                 kategori = "Overweight"
-                rekomendasi += [
-                    "Kurangi konsumsi gula dan gorengan.",
-                    "Makan lebih banyak sayur dan buah.",
-                    "Lakukan olahraga ringan secara rutin."
+                rekomendasi = [
+                    "Kurangi gula dan gorengan",
+                    "Perbanyak sayur dan buah",
+                    "Aktivitas fisik teratur"
                 ]
+                sumber = "https://www.cdc.gov"
 
             else:
                 kategori = "Obesitas"
-                rekomendasi += [
-                    "Kurangi makanan tinggi kalori dan lemak.",
-                    "Tingkatkan aktivitas fisik harian.",
-                    "Pertimbangkan konsultasi dengan ahli gizi."
+                rekomendasi = [
+                    "Kurangi makanan tinggi lemak",
+                    "Tingkatkan aktivitas fisik",
+                    "Konsultasi ahli gizi"
                 ]
+                sumber = "https://www.cdc.gov"
 
-            # ================= PENYAKIT =================
-            if penyakit == "diabetes":
-                rekomendasi += [
-                    "Hindari makanan manis dan minuman gula.",
-                    "Pilih karbohidrat kompleks seperti beras merah.",
-                    "Perbanyak sayuran hijau."
-                ]
+            # ===== PENYESUAIAN PENYAKIT =====
+            if "asam lambung" in penyakit:
+                rekomendasi.append("Hindari makanan pedas dan asam")
+                sumber = "https://www.mayoclinic.org"
 
-            elif penyakit == "hipertensi":
-                rekomendasi += [
-                    "Kurangi konsumsi garam.",
-                    "Hindari makanan kemasan dan instan.",
-                    "Perbanyak buah dan sayur."
-                ]
-
-            elif penyakit == "kolesterol":
-                rekomendasi += [
-                    "Kurangi makanan tinggi lemak jenuh.",
-                    "Konsumsi oatmeal, ikan, dan kacang-kacangan."
-                ]
-
-            elif penyakit == "asam_urat":
-                rekomendasi += [
-                    "Hindari jeroan, seafood tinggi purin, dan daging merah.",
-                    "Minum air putih banyak setiap hari."
-                ]
-
-            # ================= SIMPAN KE DATABASE =================
+            # ===== SIMPAN DATABASE =====
             BMIResult.objects.create(
                 user=request.user,
                 berat=berat,
-                tinggi=tinggi * 100,  # balik ke cm
-                bmi=round(bmi, 2),
+                tinggi=tinggi_cm,
+                bmi=bmi,
                 kategori=kategori,
-                riwayat_input=penyakit or "",
-                penyakit_terdeteksi=penyakit or "",
+                penyakit_terdeteksi=penyakit,
                 rekomendasi=", ".join(rekomendasi)
-)
-            
-            print("BMI DISIMPAN:", request.user.username, round(bmi, 2))
-
-
-
-            # ================= SIMPAN KE SESSION =================
-            request.session['penyakit'] = penyakit
-            request.session['kategori_bmi'] = kategori
-
-            return redirect('accounts:dashboard')
+            )
 
         except (ValueError, ZeroDivisionError):
             messages.error(request, "Input tidak valid. Masukkan angka dengan benar.")
@@ -220,8 +199,10 @@ def bmi_view(request):
         'bmi': bmi,
         'kategori': kategori,
         'penyakit': penyakit,
-        'rekomendasi': rekomendasi
+        'rekomendasi': rekomendasi,
+        'sumber': sumber,
     })
+
 
 @login_required(login_url='accounts:login')
 def logout_view(request):
@@ -284,22 +265,28 @@ def tips_view(request):
 
 @login_required(login_url='accounts:login')
 def dashboard_view(request):
+    today = date.today()
+    week = today.isocalendar()[1]
+    year = today.year
+
     last_bmi = BMIResult.objects.filter(user=request.user).last()
-    target = None
-        # ===== RIWAYAT BMI 7 DATA TERAKHIR =====
+
     weekly_logs = BMIResult.objects.filter(
         user=request.user
     ).order_by('-created_at')[:7]
 
-    # ===================== TARGET HARIAN  =====================
-    meal_plan = WeeklyMealPlan.objects.filter(user=request.user).last()
+    meal_plan = WeeklyMealPlan.objects.filter(
+        user=request.user,
+        week=week,
+        year=year
+    ).first()
+
+    target = None
 
     if last_bmi:
         tinggi_m = last_bmi.tinggi / 100
-
         berat_ideal = round(22 * (tinggi_m ** 2), 1)
-        progress_berat = round((last_bmi.berat / berat_ideal) * 100, 0)
-        progress_berat = min(progress_berat, 100)
+        progress_berat = min(round((last_bmi.berat / berat_ideal) * 100, 0), 100)
 
         kalori_target = round(last_bmi.berat * 30)
         kalori_harian = round(kalori_target * 0.7)
@@ -314,13 +301,12 @@ def dashboard_view(request):
             "progress_kalori": progress_kalori,
         }
 
-        return render(request, 'accounts/dashboard.html', {
+    return render(request, 'accounts/dashboard.html', {
         'last_bmi': last_bmi,
         'target': target,
         'weekly_logs': weekly_logs,
         'meal_plan': meal_plan,
     })
-
 
     # =====================  TAMBAHAN: PROGRES MINGGUAN =====================
     seminggu_lalu = timezone.now() - timedelta(days=7)
@@ -342,51 +328,66 @@ def weekly_meal_view(request):
     week = today.isocalendar()[1]
     year = today.year
 
-    meal_plan = WeeklyMealPlan.objects.filter(
-        user=request.user,
-        week=week,
-        year=year
-    ).first()
-
     if request.method == "POST":
-        kondisi = request.POST.get("kondisi_kesehatan")
-        alergi = request.POST.get("alergi_makanan")
+        meal_plan_text = request.POST.get("meal_plan")
 
         WeeklyMealPlan.objects.update_or_create(
             user=request.user,
             week=week,
             year=year,
-            defaults={
-                "kondisi_kesehatan": kondisi,
-                "alergi_makanan": alergi
-            }
+            defaults={"meal_plan": meal_plan_text}
         )
 
-        messages.success(request, "Weekly Meal Plan berhasil disimpan 💾")
-        return redirect("accounts:dashboard")
+        messages.success(request, "✅ Weekly Meal Plan berhasil disimpan!")
+        return redirect("accounts:tips")
 
-    return render(request, "accounts/weaklymeal.html", {
-        "meal_plan": meal_plan
+    return render(request, "accounts/weaklymeal.html")
+
+# ==== chatbot_api ====
+@csrf_exempt
+@login_required(login_url='accounts:login')
+def chatbot_api(request):
+    if request.method == "POST":
+        try:
+            data = json.loads(request.body)
+            user_message = data.get("message", "").strip()
+
+            if not user_message:
+                return JsonResponse({"reply": "Pesan tidak boleh kosong."})
+
+            response = client.chat.completions.create(
+                model="gpt-3.5-turbo",
+                messages=[
+                    {
+                        "role": "system",
+                        "content": (
+                            "Kamu adalah MediBot, asisten kesehatan digital. "
+                            "Jawab dalam bahasa Indonesia yang sopan, ramah, dan edukatif. "
+                            "Jangan memberikan diagnosis medis."
+                        )
+                    },
+                    {"role": "user", "content": user_message}
+                ],
+                temperature=0.7,
+                max_tokens=300
+            )
+
+            reply = response.choices[0].message.content
+            return JsonResponse({"reply": reply})
+
+        except Exception as e:
+            if "quota" in str(e).lower():
+             return JsonResponse({
+            "reply": "Maaf, layanan AI sedang mencapai batas penggunaan. Silakan coba lagi nanti 🙏"
+        })
+    return JsonResponse({
+        "reply": "MediBot sedang mengalami gangguan 😢"
     })
 
-def chatbot_api(request):
-    user_msg = request.GET.get('msg', '').lower()
 
-    # RULE BOT
-    if "halo" in user_msg or "hi" in user_msg:
-        reply = "Halo! Ada yang bisa Medicheck bantu hari ini?"
-    elif "bmi" in user_msg:
-        reply = "Untuk hitung BMI, kamu bisa masuk ke menu BMI ya!"
-    elif "makan apa" in user_msg:
-        reply = "Coba konsumsi makanan bergizi: sayur, buah, protein, dan air putih."
-    elif "obat" in user_msg:
-        reply = "Gunakan obat sesuai anjuran dokter. Ada keluhan tertentu?"
-    elif "tips" in user_msg:
-        reply = "Tips kesehatan ada di menu Tips ya!"
-    else:
-        reply = "Aku belum mengerti pertanyaanmu, coba ulangi ya 😊"
+    return JsonResponse({"reply": "Metode tidak diizinkan."})
 
-    return JsonResponse({"reply": reply})
+    
 
 
 

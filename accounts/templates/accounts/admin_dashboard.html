@@ -13,7 +13,26 @@ body {
 .card {
     border-radius: 18px;
 }
+
+/* Badge tambahan */
+.badge-normal {
+    background-color: #0dcaf0; /* biru */
+}
+.badge-ideal {
+    background-color: #198754; /* hijau */
+}
+.badge-kurus {
+    background-color: #ffc107; /* kuning */
+    color: #000;
+}
+.badge-overweight {
+    background-color: #fd7e14; /* oranye */
+}
+.badge-obesitas {
+    background-color: #dc3545; /* merah */
+}
 </style>
+
 </head>
 
 <body>
@@ -73,16 +92,28 @@ body {
 <tr>
   <td>{{ bmi.user.username }}</td>
   <td>{{ bmi.bmi }}</td>
-  <td>{{ bmi.kategori }}</td>
+  <td>
+  {% if bmi.kategori == "Normal (Ideal)" %}
+    <span class="badge badge-ideal">Normal (Ideal)</span>
+  {% elif bmi.kategori == "Normal" %}
+    <span class="badge badge-normal">Normal</span>
+  {% elif bmi.kategori == "Kurus" %}
+    <span class="badge badge-kurus">Kurus</span>
+  {% elif bmi.kategori == "Overweight" %}
+    <span class="badge badge-overweight">Overweight</span>
+  {% elif bmi.kategori == "Obesitas" %}
+    <span class="badge badge-obesitas">Obesitas</span>
+  {% else %}
+    <span class="badge bg-secondary">{{ bmi.kategori }}</span>
+  {% endif %}
+</td>
   <td>{{ bmi.created_at|date:"d M Y" }}</td>
 </tr>
 {% endfor %}
 </tbody>
 </table>
 
-<a href="/admin/" class="btn btn-outline-primary mt-3">
-🔧 Buka Django Admin
-</a>
+<a href="/admin/" class="btn btn-outline-primary mt-3">🔧 Buka Django Admin</a>
 
 </div>
 

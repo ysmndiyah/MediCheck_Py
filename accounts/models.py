@@ -47,10 +47,7 @@ class HealthLog(models.Model):
     
 class WeeklyMealPlan(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
-
-    kondisi_kesehatan = models.TextField()
-    alergi_makanan = models.TextField()
-
+    meal_plan = models.TextField()  
     week = models.IntegerField()
     year = models.IntegerField()
 
@@ -60,7 +57,8 @@ class WeeklyMealPlan(models.Model):
         unique_together = ('user', 'week', 'year')
 
     def __str__(self):
-        return f"{self.user.username} - Week {self.week} {self.year}"
+        return f"{self.user.username} - Meal Plan Week {self.week} {self.year}"
+
     
 class MentalHealthLog(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
