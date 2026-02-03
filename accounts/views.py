@@ -17,6 +17,10 @@ from django.views.decorators.csrf import csrf_exempt
 import json
 import os
 from openai import OpenAI
+from django.core.mail import send_mail
+from django.conf import settings
+from .models import PasswordResetToken
+from django.contrib.auth.decorators import user_passes_test
 
 print("OPENAI KEY:", os.getenv("OPENAI_API_KEY"))
 
@@ -24,13 +28,13 @@ print("OPENAI KEY:", os.getenv("OPENAI_API_KEY"))
 client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
 
-# ===================== LOGIN DENGAN EMAIL =====================
+# === LOGIN DENGAN EMAIL ===
 def login_view(request):
     if request.method == 'POST':
         email = request.POST.get('email', '').strip().lower()
         password = request.POST.get('password', '')
 
-        # ================= CARI USER BERDASARKAN EMAIL =================
+        # === CARI USER BERDASARKAN EMAIL ===
         try:
             user_obj = User.objects.get(email=email)
             username = user_obj.username
@@ -38,7 +42,7 @@ def login_view(request):
             messages.error(request, "Email tidak ditemukan.")
             return render(request, 'accounts/login.html')
 
-        # ================= AUTENTIKASI =================
+        # === AUTENTIKASI ===
         user = authenticate(request, username=username, password=password)
 
         if user is not None:
@@ -49,12 +53,11 @@ def login_view(request):
                 f"Selamat datang, {user.first_name or user.username}!"
             )
 
-            # ================= PEMISAHAN ROLE =================
+            # === PEMISAHAN ROLE ===
             if user.is_staff:
                 return redirect('accounts:admin_dashboard')
             else:
                 return redirect('accounts:dashboard')
-
         else:
             messages.error(request, "Password salah.")
 
@@ -74,7 +77,7 @@ def admin_dashboard_view(request):
 
     return render(request, 'accounts/admin_dashboard.html', context)
 
-# ===================== REGISTER DENGAN EMAIL & NAMA LENGKAP =====================
+# === REGISTER DENGAN EMAIL & NAMA LENGKAP ===
 def register_view(request):
     if request.method == 'POST':
         email = request.POST.get('email', '').strip().lower()
@@ -122,6 +125,8 @@ def register_view(request):
 
     return render(request, 'accounts/register.html')
 
+# accounts/views.py
+
 @login_required(login_url='accounts:login')
 def bmi_view(request):
     bmi = None
@@ -132,60 +137,74 @@ def bmi_view(request):
 
     if request.method == 'POST':
         try:
+            # 1. AMBIL INPUT
             berat = float(request.POST.get('berat'))
             tinggi_cm = float(request.POST.get('tinggi'))
+            usia = int(request.POST.get('usia'))
+            gender = request.POST.get('gender')  # <--- AMBIL GENDER
             penyakit = request.POST.get('penyakit', '').lower()
 
             tinggi = tinggi_cm / 100
             bmi = round(berat / (tinggi ** 2), 1)
 
-            # ===== KATEGORI BMI =====
+            # 2. KATEGORI BMI (UMUM)
             if bmi < 18.5:
                 kategori = "Kurus"
-                rekomendasi = [
-                    "Makan lebih sering dengan porsi kecil",
-                    "Perbanyak protein",
-                    "Tambahkan kalori sehat"
-                ]
                 sumber = "https://www.who.int"
-
             elif bmi < 25:
                 kategori = "Normal (Ideal)"
-                rekomendasi = [
-                    "Pertahankan pola makan seimbang",
-                    "Olahraga rutin",
-                    "Cukup minum air putih"
-                ]
                 sumber = "https://www.who.int"
-
             elif bmi < 30:
                 kategori = "Overweight"
-                rekomendasi = [
-                    "Kurangi gula dan gorengan",
-                    "Perbanyak sayur dan buah",
-                    "Aktivitas fisik teratur"
-                ]
                 sumber = "https://www.cdc.gov"
-
             else:
                 kategori = "Obesitas"
-                rekomendasi = [
-                    "Kurangi makanan tinggi lemak",
-                    "Tingkatkan aktivitas fisik",
-                    "Konsultasi ahli gizi"
-                ]
                 sumber = "https://www.cdc.gov"
 
-            # ===== PENYESUAIAN PENYAKIT =====
-            if "asam lambung" in penyakit:
-                rekomendasi.append("Hindari makanan pedas dan asam")
-                sumber = "https://www.mayoclinic.org"
+            # 3. REKOMENDASI SPESIFIK BERDASARKAN GENDER & BMI ✨
+            
+            # --- SKENARIO LAKI-LAKI 👨 ---
+            if gender == 'Laki-laki':
+                if bmi < 18.5:
+                    rekomendasi.append("Fokus latihan beban (gym) untuk massa otot")
+                    rekomendasi.append("Tingkatkan asupan protein (dada ayam, telur, tempe)")
+                elif bmi >= 25:
+                    rekomendasi.append("Lakukan kardio intensitas tinggi (Lari/Futsal)")
+                    rekomendasi.append("Kurangi nasi putih, perbanyak lauk protein")
+                else:
+                    rekomendasi.append("Jaga kebugaran dengan Push-up dan Sit-up rutin")
 
-            # ===== SIMPAN DATABASE =====
+            # --- SKENARIO PEREMPUAN 👩 ---
+            else:
+                if bmi < 18.5:
+                    rekomendasi.append("Pastikan asupan Zat Besi (bayam/hati ayam) tercukupi")
+                    rekomendasi.append("Hindari diet ekstrem, makan teratur 3x sehari")
+                elif bmi >= 25:
+                    rekomendasi.append("Senam aerobik, Zumba, atau Yoga untuk bakar lemak")
+                    rekomendasi.append("Kurangi makanan manis/boba/gorengan")
+                else:
+                    rekomendasi.append("Yoga atau Pilates untuk kelenturan tubuh")
+            
+            # 4. LOGIKA USIA (Pelengkap)
+            if usia > 50:
+                if gender == 'Perempuan':
+                    rekomendasi.append("Wajib Kalsium tinggi untuk cegah Osteoporosis (pengeroposan tulang)")
+                rekomendasi.append("Olahraga ringan: Jalan kaki pagi")
+            
+            elif usia < 18:
+                rekomendasi.append("Tidur 8 jam untuk hormon pertumbuhan")
+
+            # 5. PENYESUAIAN PENYAKIT
+            if "asam lambung" in penyakit:
+                rekomendasi.append("Makan porsi kecil tapi sering (5x sehari)")
+                
+            # 6. SIMPAN KE DATABASE
             BMIResult.objects.create(
                 user=request.user,
                 berat=berat,
                 tinggi=tinggi_cm,
+                usia=usia,
+                gender=gender,  # <--- SIMPAN DATA GENDER
                 bmi=bmi,
                 kategori=kategori,
                 penyakit_terdeteksi=penyakit,
@@ -193,7 +212,7 @@ def bmi_view(request):
             )
 
         except (ValueError, ZeroDivisionError):
-            messages.error(request, "Input tidak valid. Masukkan angka dengan benar.")
+            messages.error(request, "Input tidak valid.")
 
     return render(request, 'accounts/bmi.html', {
         'bmi': bmi,
@@ -202,7 +221,6 @@ def bmi_view(request):
         'rekomendasi': rekomendasi,
         'sumber': sumber,
     })
-
 
 @login_required(login_url='accounts:login')
 def logout_view(request):
@@ -248,7 +266,6 @@ def tips_view(request):
             meal_plan.alergi_makanan = alergi
             meal_plan.save()
         else:
-            # CREATE
             WeeklyMealPlan.objects.create(
                 user=request.user,
                 kondisi_kesehatan=kondisi,
@@ -265,32 +282,40 @@ def tips_view(request):
 
 @login_required(login_url='accounts:login')
 def dashboard_view(request):
+    # 1. Inisialisasi Waktu
     today = date.today()
-    week = today.isocalendar()[1]
-    year = today.year
+    iso_date = today.isocalendar()
+    week, year = iso_date[1], today.year
+    seminggu_lalu = timezone.now() - timedelta(days=7)
 
+    # 2. Ambil Data dari Database
     last_bmi = BMIResult.objects.filter(user=request.user).last()
-
-    weekly_logs = BMIResult.objects.filter(
-        user=request.user
-    ).order_by('-created_at')[:7]
-
     meal_plan = WeeklyMealPlan.objects.filter(
-        user=request.user,
-        week=week,
+        user=request.user, 
+        week=week, 
         year=year
     ).first()
+    
+    # Mengambil log BMI selama 7 hari terakhir (diurutkan dari yang terlama ke terbaru untuk grafik)
+    weekly_logs = BMIResult.objects.filter(
+        user=request.user,
+        created_at__gte=seminggu_lalu
+    ).order_by("created_at")
 
+    # 3. Logika Perhitungan Target
     target = None
-
-    if last_bmi:
+    if last_bmi and last_bmi.tinggi > 0:
+        # Hitung Berat Ideal (Rumus: 22 * tinggi_m^2)
         tinggi_m = last_bmi.tinggi / 100
         berat_ideal = round(22 * (tinggi_m ** 2), 1)
-        progress_berat = min(round((last_bmi.berat / berat_ideal) * 100, 0), 100)
-
+        
+        # Hitung Target Kalori (Rumus: Berat * 30)
         kalori_target = round(last_bmi.berat * 30)
-        kalori_harian = round(kalori_target * 0.7)
-        progress_kalori = round((kalori_harian / kalori_target) * 100, 0)
+        kalori_harian = round(kalori_target * 0.7) # Contoh asumsi konsumsi saat ini
+
+        # Hitung Persentase Progress (Dibatasi max 100%)
+        progress_berat = min(round((last_bmi.berat / berat_ideal) * 100), 100) if berat_ideal > 0 else 0
+        progress_kalori = min(round((kalori_harian / kalori_target) * 100), 100) if kalori_target > 0 else 0
 
         target = {
             "berat_sekarang": last_bmi.berat,
@@ -301,17 +326,19 @@ def dashboard_view(request):
             "progress_kalori": progress_kalori,
         }
 
-    return render(request, 'accounts/dashboard.html', {
+    # 4. Kirim ke Template (Hanya satu kali return render)
+    context = {
         'last_bmi': last_bmi,
         'target': target,
         'weekly_logs': weekly_logs,
         'meal_plan': meal_plan,
-    })
+    }
+    return render(request, 'accounts/dashboard.html', context)
 
-    # =====================  TAMBAHAN: PROGRES MINGGUAN =====================
+    # ===  TAMBAHAN: PROGRES MINGGUAN ===
     seminggu_lalu = timezone.now() - timedelta(days=7)
 
-    weekly_logs = BMIResult.objects.filter(
+    weekly_logs = BMIResult.objects.filter( #django ORM mengelola database
         user=request.user,
         created_at__gte=seminggu_lalu
     ).order_by("created_at")
@@ -384,9 +411,79 @@ def chatbot_api(request):
         "reply": "MediBot sedang mengalami gangguan 😢"
     })
 
-
     return JsonResponse({"reply": "Metode tidak diizinkan."})
 
+def forgot_password_view(request):
+    if request.method == 'POST':
+        email = request.POST.get('email')
+        try:
+            user = User.objects.get(email=email)
+            
+            # Buat atau Ambil Token
+            token_obj, created = PasswordResetToken.objects.get_or_create(user=user)
+            token_obj.generate_token() # Generate kode baru
+            
+            # Kirim Email
+            subject = 'Kode Reset Password MediCheck'
+            message = f'Kode OTP kamu adalah: {token_obj.token}'
+            send_mail(subject, message, settings.EMAIL_HOST_USER, [email])
+            
+            # Simpan email di session biar tidak perlu ketik ulang
+            request.session['reset_email'] = email
+            messages.success(request, f"Kode telah dikirim ke {email}")
+            return redirect('accounts:verify_otp')
+            
+        except User.DoesNotExist:
+            messages.error(request, "Email tidak terdaftar.")
+            
+    return render(request, 'accounts/forgot_password.html')
+
+# 2. HALAMAN INPUT KODE OTP
+def verify_otp_view(request):
+    if request.method == 'POST':
+        kode_input = request.POST.get('otp')
+        email = request.session.get('reset_email')
+        
+        try:
+            user = User.objects.get(email=email)
+            token_obj = PasswordResetToken.objects.get(user=user)
+            
+            if token_obj.token == kode_input:
+                # KODE BENAR!
+                return redirect('accounts:new_password')
+            else:
+                messages.error(request, "Kode salah!")
+        except:
+            messages.error(request, "Terjadi kesalahan.")
+
+    return render(request, 'accounts/verify_otp.html')
+
+# 3. HALAMAN BUAT PASSWORD BARU
+def new_password_view(request):
+    email = request.session.get('reset_email')
+    if not email:
+        return redirect('accounts:login')
+
+    if request.method == 'POST':
+        pass1 = request.POST.get('password')
+        pass2 = request.POST.get('confirm_password')
+        
+        if pass1 != pass2:
+            messages.error(request, "Password tidak cocok.")
+        else:
+            user = User.objects.get(email=email)
+            user.set_password(pass1) # Ubah password
+            user.save()
+            
+            PasswordResetToken.objects.filter(user=user).delete()
+            del request.session['reset_email'] # Bersihkan session
+            
+            messages.success(request, "Password berhasil diubah! Silakan login.")
+            return redirect('accounts:login')
+
+    return render(request, 'accounts/new_password.html')
+
+    
     
 
 

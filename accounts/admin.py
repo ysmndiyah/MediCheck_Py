@@ -2,7 +2,6 @@ from django.contrib import admin
 from .models import BMIResult, WeeklyMealPlan, MentalHealthLog
 from django.utils.html import format_html
 
-
 @admin.register(BMIResult)
 class BMIResultAdmin(admin.ModelAdmin):
     list_display = (
@@ -39,7 +38,6 @@ class BMIResultAdmin(admin.ModelAdmin):
         )
 
     kategori_badge.short_description = "Kategori BMI"
-
 
 @admin.register(WeeklyMealPlan)
 class WeeklyMealPlanAdmin(admin.ModelAdmin):

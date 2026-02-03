@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Verifikasi OTP - MediCheck</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: linear-gradient(135deg, #F08787, #FFC7A7);
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-family: 'Poppins', sans-serif;
+        }
+
+        form {
+            background: white;
+            padding: 2.5rem;
+            border-radius: 16px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+            width: 90%;
+            max-width: 400px;
+            text-align: center;
+        }
+
+        h3 {
+            color: #F08787;
+            font-weight: 600;
+            margin-bottom: 1rem;
+            font-size: 1.5rem;
+        }
+
+        p {
+            color: #666;
+            font-size: 0.9rem;
+            margin-bottom: 25px;
+            line-height: 1.5;
+        }
+
+        input[name="otp"] {
+            width: 100%;
+            padding: 12px;
+            margin-bottom: 20px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            background-color: #fafafa;
+            outline: none;
+            transition: all 0.3s ease;
+            
+            
+            text-align: center;      
+            letter-spacing: 10px;    
+            font-size: 24px;         
+            font-weight: bold;
+            color: #333;
+        }
+
+        input[name="otp"]:focus {
+            border-color: #F08787;
+            background-color: white;
+            box-shadow: 0 0 0 3px rgba(240, 135, 135, 0.2);
+        }
+
+        button {
+            width: 100%;
+            padding: 12px;
+            background-color: #F08787;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.3s ease;
+        }
+
+        button:hover {
+            background-color: #d66969;
+        }
+
+        .resend-link {
+            display: block;
+            margin-top: 15px;
+            font-size: 0.85rem;
+            color: #888;
+            text-decoration: none;
+        }
+        
+        .resend-link:hover {
+            color: #F08787;
+        }
+    </style>
+</head>
+<body>
+
+    <form method="POST">
+        {% csrf_token %}
+        
+        <h3>Verifikasi Kode</h3>
+        
+        <p>
+            Kami telah mengirimkan 6 digit kode ke email kamu.<br>
+            Silakan cek inbox atau spam.
+        </p>
+
+        <input type="text" name="otp" maxlength="6" placeholder="______" required autocomplete="off">
+        
+        <button type="submit">Verifikasi</button>
+
+        <a href="{% url 'accounts:forgot_password' %}" class="resend-link">
+            Belum terima kode? Kirim ulang
+        </a>
+    </form>
+
+</body>
+</html>

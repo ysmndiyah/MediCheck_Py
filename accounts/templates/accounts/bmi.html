@@ -18,44 +18,70 @@ body {
     margin: auto;
     padding: 30px;
     border-radius: 24px;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.1); /* Tambah bayangan biar cantik */
 }
-label { font-weight: 600; margin-top: 15px; display: block; }
-input {
+label { font-weight: 600; margin-top: 15px; display: block; color: #333; }
+input, select {
     width: 100%; padding: 14px;
     border-radius: 14px; border: 2px solid #e2e2e2;
+    background-color: #f9f9f9;
+    font-size: 16px;
+}
+input:focus, select:focus {
+    outline: none;
+    border-color: #6f3cff;
+    background-color: #fff;
 }
 .btn-bmi {
-    width: 100%; margin-top: 20px;
+    width: 100%; margin-top: 25px;
     padding: 15px; border-radius: 16px;
     border: none; font-weight: 600;
+    font-size: 16px;
+    cursor: pointer;
+    transition: 0.3s;
 }
-.btn-hit { background:#6f3cff; color:white; }
-.btn-save { background:#00b894; color:white; display:none; }
+.btn-hit { 
+    background: linear-gradient(to right, #6f3cff, #8e44ad); 
+    color:white; 
+}
+.btn-hit:hover {
+    opacity: 0.9;
+    transform: translateY(-2px);
+}
 .hasil-card {
     margin-top: 25px; padding: 22px;
-    border-radius: 18px; background:#f8f5ff;
-    display:none;
+    border-radius: 18px; background:#f0ebff;
+    border-left: 5px solid #6f3cff;
+    animation: fadeIn 0.5s;
 }
 
 .wajib {
     color: #e74c3c;        /* merah */
     font-weight: 600;
     font-size: 12px;
+    margin-top: 5px;
+    display: block;
 }
 
 .btn-back {
     display: inline-block;
-    padding: 8px 14px;
-    background: rgba(255,255,255,0.25);
+    padding: 10px 18px;
+    background: rgba(255,255,255,0.2);
     color: #fff;
-    border-radius: 10px;
+    border-radius: 12px;
     text-decoration: none;
     font-weight: 600;
     transition: 0.3s;
+    backdrop-filter: blur(5px);
 }
 
 .btn-back:hover {
-    background: rgba(255,255,255,0.35);
+    background: rgba(255,255,255,0.4);
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
 }
 
 </style>
@@ -63,8 +89,7 @@ input {
 
 <body>
 
-    <!--  KEMBALI KE DASHBOARD  -->
-<div style="max-width:520px;margin:auto;margin-bottom:15px;">
+    <div style="max-width:520px;margin:auto;margin-bottom:20px;">
     <a href="{% url 'accounts:dashboard' %}" class="btn-back">
         ← Kembali ke Dashboard
     </a>
@@ -74,51 +99,59 @@ input {
 {% csrf_token %}
 
 <div class="bmi-container">
-<h1>Kalkulator BMI</h1>
+    <h1 style="text-align:center; color:#6f3cff; margin-bottom: 30px;">Kalkulator BMI</h1>
 
-<label>Berat Badan (kg)</label>
-<input type="number" id="berat" name="berat" required placeholder="Contoh: 20">
-<small class="wajib">* Wajib diisi</small>
+    <label>Jenis Kelamin</label>
+    <select name="gender" id="gender">
+        <option value="Laki-laki">Laki-laki</option>
+        <option value="Perempuan">Perempuan</option>
+    </select>
+    
+    <label>Usia (Tahun)</label>
+    <input type="number" id="usia" name="usia" required placeholder="Contoh: 25">
+    
+    <label>Berat Badan (kg)</label>
+    <input type="number" id="berat" name="berat" required placeholder="Contoh: 60">
+    
+    <label>Tinggi Badan (cm)</label>
+    <input type="number" id="tinggi" name="tinggi" required placeholder="Contoh: 170">
+    
+    <label>Riwayat Penyakit (Opsional)</label>
+    <input type="text" id="riwayat" name="penyakit" 
+           placeholder="Contoh: diabetes, asam lambung (atau strip '-')">
+    <small class="wajib">* Tulis "-" jika tidak ada</small>
 
-<label>Tinggi Badan (cm)</label>
-<input type="number" id="tinggi" name="tinggi" required placeholder="Contoh: 150">
-<small class="wajib">* Wajib diisi</small>
+    <button type="submit" class="btn-bmi btn-hit">🔥 Hitung & Simpan Hasil</button>
 
-<label>Riwayat Penyakit</label>
-<input type="text" id="riwayat" name="penyakit" required
-placeholder="Contoh: diabetes dan sesak nafas">
+    {% if bmi %}
+    <div id="hasil" class="hasil-card">
+        <h3 style="color:#6f3cff; margin-top:0;">Hasil Analisa</h3>
+        <p style="font-size: 1.1em;">BMI Anda: <b>{{ bmi }}</b> <br> Status: <span style="background:white; padding:2px 8px; border-radius:4px; font-weight:bold;">{{ kategori }}</span></p>
 
-<button type="submit" class="btn-bmi btn-hit">🔥 Hitung BMI</button>
+        <hr style="border: 1px dashed #ccc;">
 
-{% if bmi %}
-<div id="hasil" class="hasil-card" style="display:block;">
-    <h3>Hasil BMI</h3>
-    <p><b>{{ bmi }}</b> ({{ kategori }})</p>
+        <h4>💡 Rekomendasi Kesehatan:</h4>
+        <ul style="padding-left: 20px;">
+            {% for r in rekomendasi %}
+                <li style="margin-bottom: 8px;">{{ r }}</li>
+            {% empty %}
+                <li>Tidak ada rekomendasi khusus.</li>
+            {% endfor %}
+        </ul>
 
-    <h4>Rekomendasi</h4>
-    <ul>
-        {% for r in rekomendasi %}
-            <li>{{ r }}</li>
-        {% empty %}
-            <li>Tidak ada rekomendasi khusus.</li>
-        {% endfor %}
-    </ul>
-
-    <h4>Sumber</h4>
-    {% if sumber %}
-        <a href="{{ sumber }}" target="_blank">{{ sumber }}</a>
-    {% else %}
-        <p>-</p>
+        <div style="margin-top: 15px; font-size: 0.9em; color: #666;">
+            <strong>Sumber Medis:</strong> <br>
+            {% if sumber %}
+                <a href="{{ sumber }}" target="_blank" style="color:#6f3cff;">{{ sumber }}</a>
+            {% else %}
+                -
+            {% endif %}
+        </div>
+    </div>
     {% endif %}
-</div>
-{% endif %}
-
-<button type="submit" id="btnSimpan" class="btn-bmi btn-save">💾 Simpan & Lihat Target Kesehatan</button>
 
 </div>
 </form>
-
-
 
 </body>
 </html>

@@ -1,11 +1,15 @@
 from django.db import models
 from django.contrib.auth.models import User
+from django.utils import timezone
+import random
 
 
 class BMIResult(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     berat = models.FloatField()
     tinggi = models.FloatField()
+    usia = models.IntegerField(default=0)
+    gender = models.CharField(max_length=20, default='Laki-laki')
     bmi = models.FloatField()
     kategori = models.CharField(max_length=50)
     riwayat_input = models.TextField()
@@ -68,4 +72,18 @@ class MentalHealthLog(models.Model):
 
     def __str__(self):
         return f"{self.user.username} - {self.kondisi} ({self.created_at.date()})"
+    
+class PasswordResetToken(models.Model):
+    user = models.OneToOneField(User, on_delete=models.CASCADE)
+    token = models.CharField(max_length=6)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def generate_token(self):
+        """Fungsi helper untuk membuat 6 angka acak"""
+        self.token = str(random.randint(100000, 999999))
+        self.created_at = timezone.now()
+        self.save()
+
+    def __str__(self):
+        return f"Token for {self.user.username}: {self.token}"
 

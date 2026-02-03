@@ -4,7 +4,6 @@ from django.contrib.auth.models import User
 from .models import BMIResult, WeeklyMealPlan, MentalHealthLog
 from datetime import date
 
-
 class MediCheckTestCase(TestCase):
 
     def setUp(self):
@@ -16,7 +15,7 @@ class MediCheckTestCase(TestCase):
             email="user@test.com",
             password="password123"
         )
-
+        
         self.admin = User.objects.create_user(
             username="admin@test.com",
             email="admin@test.com",
@@ -24,7 +23,7 @@ class MediCheckTestCase(TestCase):
             is_staff=True
         )
 
-    # ================= LOGIN =================
+    # === LOGIN ===
     def test_login_user(self):
         response = self.client.post(reverse('accounts:login'), {
             'email': 'user@test.com',
@@ -32,7 +31,7 @@ class MediCheckTestCase(TestCase):
         })
         self.assertEqual(response.status_code, 302)
 
-    # ================= BMI =================
+    # === BMI ===
     def test_bmi_calculation_and_save(self):
         self.client.login(username="user@test.com", password="password123")
 
@@ -45,7 +44,7 @@ class MediCheckTestCase(TestCase):
         self.assertEqual(response.status_code, 302)
         self.assertEqual(BMIResult.objects.count(), 1)
 
-    # ================= DASHBOARD =================
+    # === DASHBOARD ===
     def test_dashboard_requires_login(self):
         response = self.client.get(reverse('accounts:dashboard'))
         self.assertEqual(response.status_code, 302)
@@ -55,7 +54,7 @@ class MediCheckTestCase(TestCase):
         response = self.client.get(reverse('accounts:dashboard'))
         self.assertEqual(response.status_code, 200)
 
-    # ================= WEEKLY MEAL PLAN =================
+    # === WEEKLY MEAL PLAN ===
     def test_weekly_meal_plan_create(self):
         self.client.login(username="user@test.com", password="password123")
 
@@ -67,7 +66,7 @@ class MediCheckTestCase(TestCase):
         self.assertEqual(response.status_code, 302)
         self.assertEqual(WeeklyMealPlan.objects.count(), 1)
 
-    # ================= MENTAL HEALTH =================
+    # === MENTAL HEALTH ===
     def test_mental_health_log_save(self):
         self.client.login(username="user@test.com", password="password123")
 
@@ -79,7 +78,7 @@ class MediCheckTestCase(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertEqual(MentalHealthLog.objects.count(), 1)
 
-    # ================= ADMIN DASHBOARD =================
+    # === ADMIN DASHBOARD ===
     def test_admin_dashboard_access(self):
         self.client.login(username="admin@test.com", password="admin123")
         response = self.client.get(reverse('accounts:admin_dashboard'))
